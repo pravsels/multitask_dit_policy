@@ -114,6 +114,7 @@ def train(cfg: TrainConfig):
     use_wandb = "WANDB_API_KEY" in os.environ
     if use_wandb:
         wandb.init(
+            entity=os.environ.get("WANDB_ENTITY", "pravsels"),
             project="multitask-dit-policy",
             name=output_dir.name,
             config=asdict(cfg),
@@ -131,6 +132,10 @@ def train(cfg: TrainConfig):
 
     # Load metadata for feature detection and episode boundaries
     ds_metadata = LeRobotDatasetMetadata(repo_id=repo_id, root=root)
+
+    # Build task_index → task_text lookup for CLIP conditioning
+    task_index_to_text = {row.task_index: task for task, row in ds_metadata.tasks.iterrows()}
+    logging.info(f"Task descriptions: {task_index_to_text}")
 
     # Detect sub-features and narrow to pos + eef_pose
     detected_state, detected_action = detect_sub_features(ds_metadata.features)
@@ -219,13 +224,31 @@ def train(cfg: TrainConfig):
         logging.info("Using Automatic Mixed Precision (AMP) for training")
 
     step = 0
-    progress_bar = tqdm(total=cfg.train_steps)
+
+    # Resume training state from checkpoint
+    if cfg.checkpoint_path is not None:
+        train_state_path = Path(cfg.checkpoint_path) / "train_state.pt"
+        if train_state_path.exists():
+            train_state = torch.load(train_state_path, map_location=cfg.device, weights_only=True)
+            step = train_state["step"]
+            optimizer.load_state_dict(train_state["optimizer"])
+            scaler.load_state_dict(train_state["scaler"])
+            logging.info(f"Resumed training state from step {step}")
+        else:
+            logging.warning(f"No train_state.pt in checkpoint, starting optimizer from scratch")
+
+    progress_bar = tqdm(total=cfg.train_steps, initial=step)
     dataloader_iter = cycle(dataloader)
 
     while step < cfg.train_steps:
         batch = next(dataloader_iter)
         batch = move_to_device(batch, cfg.device, non_blocking=True)
         batch = adapt_batch(batch, state_keys, action_keys, norm_mask)
+
+        # Ensure task text exists for CLIP conditioning
+        if "task" not in batch and "task_index" in batch:
+            batch["task"] = [task_index_to_text[idx.item()] for idx in batch["task_index"]]
+
         normalized_batch = ramen_normalize_batch(batch, ramen_stats, norm_mask)
 
         optimizer.zero_grad()
@@ -235,7 +258,7 @@ def train(cfg: TrainConfig):
 
         scaler.scale(loss).backward()
         scaler.unscale_(optimizer)
-        torch.nn.utils.clip_grad_norm_(policy.parameters(), 1.0)
+        grad_norm = torch.nn.utils.clip_grad_norm_(policy.parameters(), 1.0)
         scaler.step(optimizer)
         scaler.update()
 
@@ -245,21 +268,34 @@ def train(cfg: TrainConfig):
             save_path = output_dir / f"checkpoint_{step}"
             save_policy(policy, save_path)
             torch.save(ramen_stats, save_path / "ramen_stats.pt")
+            torch.save({
+                "step": step,
+                "optimizer": optimizer.state_dict(),
+                "scaler": scaler.state_dict(),
+            }, save_path / "train_state.pt")
             logging.info(f"Saved checkpoint to {save_path}")
-            if use_wandb:
-                wandb.log({"checkpoint_step": step}, step=step)
 
         progress_bar.update(1)
         progress_bar.set_postfix(loss=loss.item())
 
         if step % cfg.log_freq == 0:
-            logging.info(f"Step {step}: Loss = {loss.item():.6f}")
+            lr = optimizer.param_groups[0]["lr"]
+            logging.info(f"Step {step}: loss={loss.item():.6f} grad_norm={grad_norm:.4f} lr={lr:.2e}")
             if use_wandb:
-                wandb.log({"loss": loss.item(), "step": step})
+                wandb.log({
+                    "train/loss": loss.item(),
+                    "train/grad_norm": grad_norm.item() if isinstance(grad_norm, torch.Tensor) else grad_norm,
+                    "train/lr": lr,
+                }, step=step)
 
     final_dir = output_dir / "final_model"
     save_policy(policy, final_dir)
     torch.save(ramen_stats, final_dir / "ramen_stats.pt")
+    torch.save({
+        "step": step,
+        "optimizer": optimizer.state_dict(),
+        "scaler": scaler.state_dict(),
+    }, final_dir / "train_state.pt")
     logging.info("Training finished.")
     if use_wandb:
         wandb.finish()

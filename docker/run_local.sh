@@ -12,5 +12,6 @@ docker run --rm -it --network host --gpus all \
   -v "$PROJECT_DIR/outputs:/workspace/outputs" \
   -e HF_HUB_CACHE=/workspace/weights \
   -e HF_DATASETS_CACHE=/workspace/data \
+  -e HF_LEROBOT_HOME=/workspace/data/lerobot \
   multitask-dit-policy:amd64 \
   "${@:-bash}"
