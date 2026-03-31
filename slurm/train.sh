@@ -66,7 +66,8 @@ else
     echo "WARNING: No W&B token found at ${WANDB_TOKEN_FILE} — logging disabled"
 fi
 
-EXPORT_VARS="export PYTHONUNBUFFERED=1"
+EXPORT_VARS="export PYTHONPATH=${repo_dir}/src:\${PYTHONPATH:-}"
+EXPORT_VARS="${EXPORT_VARS} && export PYTHONUNBUFFERED=1"
 EXPORT_VARS="${EXPORT_VARS} && export WANDB_MODE=offline"
 EXPORT_VARS="${EXPORT_VARS} && export WANDB_API_KEY=${WANDB_API_KEY:-}"
 EXPORT_VARS="${EXPORT_VARS} && export WANDB_DIR=${WANDB_DIR}"
