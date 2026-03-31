@@ -71,6 +71,7 @@ import draccus  # noqa: E402
 class TrainConfig:
     # Dataset parameters
     dataset_path: str
+    run_name: str = "default"
     state_keys: list[str] = field(default_factory=lambda: list(DEFAULT_STATE_KEYS))
     action_keys: list[str] = field(default_factory=lambda: list(DEFAULT_ACTION_KEYS))
     rot6d_slice: tuple[int, int] = (ROT6D_START, ROT6D_END)
@@ -81,7 +82,7 @@ class TrainConfig:
     train_steps: int = 10_000
     save_freq: int = 500
     log_freq: int = 25
-    output_dir: str = "outputs/train_multi_task_dit"
+    output_dir: str = "outputs"
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
     use_amp: bool = False
     seed: int = 17
@@ -108,17 +109,17 @@ def train(cfg: TrainConfig):
         logging.warning("WARNING: Config device is set to CPU")
         logging.warning("Training will be significantly slower than on GPU")
 
-    output_dir = Path(cfg.output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    run_dir = Path(cfg.output_dir) / cfg.run_name
+    run_dir.mkdir(parents=True, exist_ok=True)
 
     use_wandb = "WANDB_API_KEY" in os.environ
     if use_wandb:
         wandb.init(
             entity=os.environ.get("WANDB_ENTITY", "pravsels"),
             project="multitask-dit-policy",
-            name=output_dir.name,
+            name=cfg.run_name,
             config=asdict(cfg),
-            dir=str(output_dir),
+            dir=str(run_dir),
         )
 
     # Resolve dataset location: only treat absolute paths as local datasets
@@ -178,7 +179,7 @@ def train(cfg: TrainConfig):
     )
 
     # Compute Ramen per-timestep percentile stats (cached to disk)
-    stats_cache = output_dir / "ramen_stats.pt"
+    stats_cache = run_dir / "ramen_stats.pt"
     ramen_stats = compute_ramen_stats(
         dataset,
         state_keys=state_keys,
@@ -265,7 +266,7 @@ def train(cfg: TrainConfig):
         step += 1
 
         if step % cfg.save_freq == 0:
-            save_path = output_dir / f"checkpoint_{step}"
+            save_path = run_dir / f"checkpoint_{step}"
             save_policy(policy, save_path)
             torch.save(ramen_stats, save_path / "ramen_stats.pt")
             torch.save({
@@ -288,7 +289,7 @@ def train(cfg: TrainConfig):
                     "train/lr": lr,
                 }, step=step)
 
-    final_dir = output_dir / "final_model"
+    final_dir = run_dir / "final_model"
     save_policy(policy, final_dir)
     torch.save(ramen_stats, final_dir / "ramen_stats.pt")
     torch.save({
