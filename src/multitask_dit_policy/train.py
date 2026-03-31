@@ -32,15 +32,31 @@ from pathlib import Path
 import numpy as np
 import torch
 import wandb
-from lerobot.datasets.lerobot_dataset import LeRobotDataset, LeRobotDatasetMetadata
+from lerobot.datasets.lerobot_dataset import LeRobotDatasetMetadata
 from lerobot.datasets.sampler import EpisodeAwareSampler
 from lerobot.datasets.utils import cycle
+from robocandywrapper import make_dataset_without_config
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from multitask_dit_policy.model.model import MultiTaskDiTPolicy
 from multitask_dit_policy.utils.configuration import MultiTaskDiTConfig
-from multitask_dit_policy.utils.utils import move_to_device, normalize_batch, save_policy
+from multitask_dit_policy.utils.dataset_adapter import (
+    DEFAULT_ACTION_KEYS,
+    DEFAULT_STATE_KEYS,
+    ROT6D_END,
+    ROT6D_START,
+    adapt_batch,
+    compute_adapted_features,
+    detect_sub_features,
+    select_default_keys,
+)
+from multitask_dit_policy.utils.ramen_normalization import (
+    build_norm_mask,
+    compute_ramen_stats,
+    ramen_normalize_batch,
+)
+from multitask_dit_policy.utils.utils import move_to_device, save_policy
 
 # Suppress Pydantic warnings from draccus ChoiceRegistry union types
 # This is an interaction with draccus that we can't control
@@ -55,6 +71,9 @@ import draccus  # noqa: E402
 class TrainConfig:
     # Dataset parameters
     dataset_path: str
+    state_keys: list[str] = field(default_factory=lambda: list(DEFAULT_STATE_KEYS))
+    action_keys: list[str] = field(default_factory=lambda: list(DEFAULT_ACTION_KEYS))
+    rot6d_slice: tuple[int, int] = (ROT6D_START, ROT6D_END)
 
     # Training parameters
     batch_size: int = 16
@@ -92,7 +111,6 @@ def train(cfg: TrainConfig):
     output_dir = Path(cfg.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Check if wandb logging is enabled
     use_wandb = "WANDB_API_KEY" in os.environ
     if use_wandb:
         wandb.init(
@@ -102,53 +120,73 @@ def train(cfg: TrainConfig):
             dir=str(output_dir),
         )
 
-    # Extract repo_id from the final directory name of dataset_path
+    # Resolve dataset location: only treat absolute paths as local datasets
     dataset_path = Path(cfg.dataset_path)
-    if not dataset_path.exists():
-        raise FileNotFoundError(
-            f"Dataset path not found: {cfg.dataset_path}\n"
-            f"Please ensure the dataset directory exists at the specified path."
-        )
-    repo_id = dataset_path.name
+    if dataset_path.is_absolute() and dataset_path.is_dir():
+        repo_id = dataset_path.name
+        root = str(dataset_path)
+    else:
+        repo_id = cfg.dataset_path
+        root = None
 
-    # need metadata to get features and stats
-    ds_metadata = LeRobotDatasetMetadata(repo_id=repo_id, root=cfg.dataset_path)
+    # Load metadata for feature detection and episode boundaries
+    ds_metadata = LeRobotDatasetMetadata(repo_id=repo_id, root=root)
+
+    # Detect sub-features and narrow to pos + eef_pose
+    detected_state, detected_action = detect_sub_features(ds_metadata.features)
+    state_keys = cfg.state_keys or select_default_keys(detected_state, detected_action)[0]
+    action_keys = cfg.action_keys or select_default_keys(detected_state, detected_action)[1]
+    logging.info(f"Sub-feature keys — state: {state_keys}, action: {action_keys}")
+
+    # Build norm mask: True for dims that get delta + normalization, False for 6D rotation
+    rot6d_start, rot6d_end = cfg.rot6d_slice
+    input_features, output_features = compute_adapted_features(
+        ds_metadata.features, state_keys, action_keys,
+    )
+    state_dim = input_features["observation.state"].shape[0]
+    norm_mask = build_norm_mask(state_dim, rot6d_start, rot6d_end)
+
+    cfg.policy.input_features = input_features
+    cfg.policy.output_features = output_features
 
     # Load or create policy
     if cfg.checkpoint_path is not None:
         logging.info(f"Loading policy from checkpoint: {cfg.checkpoint_path}")
         policy = MultiTaskDiTPolicy.load(cfg.checkpoint_path)
-        # Use the checkpoint's config for feature setup
         policy_config = policy.config
-        logging.info("Policy loaded successfully from checkpoint")
     else:
         policy_config = cfg.policy
-        policy = MultiTaskDiTPolicy(policy_config, dataset_metadata=ds_metadata)
+        policy = MultiTaskDiTPolicy(policy_config)
 
     policy_config.device = cfg.device
     policy.to(cfg.device)
     policy.train()
 
-    delta_indices = {}
-    # For observation keys
-    for key in policy_config.input_features:
-        delta_indices[key] = policy_config.observation_delta_indices
-    # For action keys
-    for key in policy_config.output_features:
-        delta_indices[key] = policy_config.action_delta_indices
-
-    delta_timestamps = {key: [i / ds_metadata.fps for i in indices] for key, indices in delta_indices.items()}
-
-    dataset = LeRobotDataset(
+    # Create dataset via RoboCandyWrapper (handles delta_timestamps automatically)
+    dataset = make_dataset_without_config(
         repo_id=repo_id,
-        root=cfg.dataset_path,
-        delta_timestamps=delta_timestamps,
-        video_backend="torchcodec",  #  set torchcodec explicitly
+        action_delta_indices=list(policy_config.action_delta_indices),
+        observation_delta_indices=list(policy_config.observation_delta_indices),
+        root=root,
+        video_backend="torchcodec",
+        use_imagenet_stats=True,
     )
 
+    # Compute Ramen per-timestep percentile stats (cached to disk)
+    stats_cache = output_dir / "ramen_stats.pt"
+    ramen_stats = compute_ramen_stats(
+        dataset,
+        state_keys=state_keys,
+        action_keys=action_keys,
+        norm_mask=norm_mask,
+        cache_path=stats_cache,
+        device=cfg.device,
+    )
+    norm_mask = norm_mask.to(cfg.device)
+
     sampler = EpisodeAwareSampler(
-        dataset.meta.episodes["dataset_from_index"],
-        dataset.meta.episodes["dataset_to_index"],
+        ds_metadata.episodes["dataset_from_index"],
+        ds_metadata.episodes["dataset_to_index"],
         drop_n_last_frames=cfg.policy.drop_n_last_frames,
         shuffle=True,
     )
@@ -159,7 +197,7 @@ def train(cfg: TrainConfig):
         sampler=sampler,
         shuffle=False,
         num_workers=cfg.num_workers,
-        pin_memory=True if cfg.device == "cuda" else False,
+        pin_memory=cfg.device == "cuda",
         persistent_workers=cfg.num_workers > 0,
         drop_last=False,
         prefetch_factor=2 if cfg.num_workers > 0 else None,
@@ -180,27 +218,15 @@ def train(cfg: TrainConfig):
     if use_amp:
         logging.info("Using Automatic Mixed Precision (AMP) for training")
 
-    stats_tensors = {}
-    for key, stat in ds_metadata.stats.items():
-        stats_tensors[key] = {k: torch.tensor(v, device=cfg.device, dtype=torch.float32) for k, v in stat.items()}
-
     step = 0
     progress_bar = tqdm(total=cfg.train_steps)
-
-    # infinite iterator over dataloader (cycles automatically)
     dataloader_iter = cycle(dataloader)
 
     while step < cfg.train_steps:
         batch = next(dataloader_iter)
         batch = move_to_device(batch, cfg.device, non_blocking=True)
-
-        normalized_batch = normalize_batch(
-            batch,
-            policy_config.input_features,
-            policy_config.output_features,
-            policy_config.normalization_mapping,
-            stats_tensors,
-        )
+        batch = adapt_batch(batch, state_keys, action_keys, norm_mask)
+        normalized_batch = ramen_normalize_batch(batch, ramen_stats, norm_mask)
 
         optimizer.zero_grad()
 
@@ -208,7 +234,7 @@ def train(cfg: TrainConfig):
             loss, _ = policy(normalized_batch)
 
         scaler.scale(loss).backward()
-        scaler.unscale_(optimizer)  # unscale for gradient clipping
+        scaler.unscale_(optimizer)
         torch.nn.utils.clip_grad_norm_(policy.parameters(), 1.0)
         scaler.step(optimizer)
         scaler.update()
@@ -217,7 +243,8 @@ def train(cfg: TrainConfig):
 
         if step % cfg.save_freq == 0:
             save_path = output_dir / f"checkpoint_{step}"
-            save_policy(policy, save_path, ds_metadata.stats)
+            save_policy(policy, save_path)
+            torch.save(ramen_stats, save_path / "ramen_stats.pt")
             logging.info(f"Saved checkpoint to {save_path}")
             if use_wandb:
                 wandb.log({"checkpoint_step": step}, step=step)
@@ -228,15 +255,11 @@ def train(cfg: TrainConfig):
         if step % cfg.log_freq == 0:
             logging.info(f"Step {step}: Loss = {loss.item():.6f}")
             if use_wandb:
-                wandb.log(
-                    {
-                        "loss": loss.item(),
-                        "step": step,
-                    }
-                )
+                wandb.log({"loss": loss.item(), "step": step})
 
     final_dir = output_dir / "final_model"
-    save_policy(policy, final_dir, ds_metadata.stats)
+    save_policy(policy, final_dir)
+    torch.save(ramen_stats, final_dir / "ramen_stats.pt")
     logging.info("Training finished.")
     if use_wandb:
         wandb.finish()

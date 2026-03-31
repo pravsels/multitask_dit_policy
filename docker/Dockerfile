@@ -13,8 +13,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /workspace
 COPY pyproject.toml README.md ./
-COPY src ./src
 
-RUN pip install --no-cache-dir \
-    --extra-index-url https://download.pytorch.org/whl/cu128 \
-    .
+# Install deps with a stub package (cached unless pyproject.toml changes)
+RUN mkdir -p src/multitask_dit_policy && \
+    touch src/multitask_dit_policy/__init__.py && \
+    pip install --no-cache-dir \
+        --extra-index-url https://download.pytorch.org/whl/cu128 \
+        .
+
+RUN pip install --no-cache-dir --no-dependencies robocandywrapper
+
+# Copy actual source — only this and the next layer re-run on code changes
+COPY src ./src
+RUN pip install --no-cache-dir --no-dependencies .
