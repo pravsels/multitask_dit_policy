@@ -46,17 +46,9 @@ echo "===================================="
 # Experiment config — use REPO_DIR, not SCRIPT_DIR (Slurm copies scripts to spool).
 CONFIG_FILE="${repo_dir}/config/train_coffee_capsules.yaml"
 
-# Resume: set path to resume from a checkpoint.
-LOAD_CKPT_PATH=""
-
 TRAIN_CMD="python3 -m multitask_dit_policy.train \
     --config_path ${CONFIG_FILE} \
     --output_dir ${OUTPUT_DIR}"
-
-if [ -n "${LOAD_CKPT_PATH}" ]; then
-    TRAIN_CMD="${TRAIN_CMD} --checkpoint_path ${LOAD_CKPT_PATH}"
-    echo "Resuming from: ${LOAD_CKPT_PATH}"
-fi
 
 WANDB_TOKEN_FILE="${scratch_dir}/.wandb_token"
 if [ -f "${WANDB_TOKEN_FILE}" ]; then

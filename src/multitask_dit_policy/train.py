@@ -155,10 +155,18 @@ def train(cfg: TrainConfig):
     cfg.policy.input_features = input_features
     cfg.policy.output_features = output_features
 
+    # Auto-detect latest checkpoint in run_dir for resume
+    checkpoint_path = cfg.checkpoint_path
+    if checkpoint_path is None:
+        ckpt_dirs = sorted(run_dir.glob("checkpoint_*"), key=lambda p: int(p.name.split("_")[1]))
+        if ckpt_dirs:
+            checkpoint_path = str(ckpt_dirs[-1])
+            logging.info(f"Auto-detected latest checkpoint: {checkpoint_path}")
+
     # Load or create policy
-    if cfg.checkpoint_path is not None:
-        logging.info(f"Loading policy from checkpoint: {cfg.checkpoint_path}")
-        policy = MultiTaskDiTPolicy.load(cfg.checkpoint_path)
+    if checkpoint_path is not None:
+        logging.info(f"Loading policy from checkpoint: {checkpoint_path}")
+        policy = MultiTaskDiTPolicy.load(checkpoint_path)
         policy_config = policy.config
     else:
         policy_config = cfg.policy
@@ -227,8 +235,8 @@ def train(cfg: TrainConfig):
     step = 0
 
     # Resume training state from checkpoint
-    if cfg.checkpoint_path is not None:
-        train_state_path = Path(cfg.checkpoint_path) / "train_state.pt"
+    if checkpoint_path is not None:
+        train_state_path = Path(checkpoint_path) / "train_state.pt"
         if train_state_path.exists():
             train_state = torch.load(train_state_path, map_location=cfg.device, weights_only=True)
             step = train_state["step"]
