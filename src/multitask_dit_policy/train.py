@@ -173,7 +173,7 @@ def train(cfg: TrainConfig):
         action_delta_indices=list(policy_config.action_delta_indices),
         observation_delta_indices=list(policy_config.observation_delta_indices),
         root=root,
-        video_backend="torchcodec",
+        video_backend="pyav",
         use_imagenet_stats=True,
     )
 
