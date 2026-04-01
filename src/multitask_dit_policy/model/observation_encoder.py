@@ -302,7 +302,7 @@ class ObservationEncoder(nn.Module):
 
         # Vision features - get CLS token feature dimension
         if self.vision_encoder is not None or self.vision_encoders is not None:
-            encoder_to_check = self.vision_encoder or next(iter(self.vision_encoders.values()))
+            encoder_to_check = self.vision_encoder or self.vision_encoders[0]
 
             # Get output shape from encoder (deterministic for CLS tokens)
             feature_map_shape = encoder_to_check.get_output_shape()
