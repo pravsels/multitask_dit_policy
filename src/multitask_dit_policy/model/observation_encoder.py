@@ -28,7 +28,7 @@ import torch.nn as nn
 import torchvision
 from lerobot.utils.constants import OBS_ENV_STATE, OBS_IMAGES, OBS_STATE
 from torch import Tensor
-from transformers import CLIPTextModel, CLIPTokenizer
+from transformers import CLIPTextConfig, CLIPTextModel, CLIPTokenizer
 
 
 class BaseVisionEncoder(ABC):
@@ -48,7 +48,7 @@ class BaseVisionEncoder(ABC):
 class DinoV3Encoder(nn.Module, BaseVisionEncoder):
     """DinoV3 vision encoder using the CLS token for global image representation."""
 
-    def __init__(self, config):
+    def __init__(self, config, pretrained: bool = True):
         super().__init__()
         self.config = config
         self.model_name = config.backbone
@@ -56,7 +56,7 @@ class DinoV3Encoder(nn.Module, BaseVisionEncoder):
         # Create the timm model
         self.model = timm.create_model(
             self.model_name,
-            pretrained=True,
+            pretrained=pretrained,
             num_classes=0,
         )
 
@@ -83,7 +83,7 @@ class DinoV3Encoder(nn.Module, BaseVisionEncoder):
 class CLIPEncoder(nn.Module, BaseVisionEncoder):
     """CLIP vision encoder using the CLS token for global image representation."""
 
-    def __init__(self, config):
+    def __init__(self, config, pretrained: bool = True):
         super().__init__()
         self.config = config
         self.model_name = config.backbone
@@ -91,7 +91,7 @@ class CLIPEncoder(nn.Module, BaseVisionEncoder):
         # Create the timm model
         self.model = timm.create_model(
             self.model_name,
-            pretrained=True,
+            pretrained=pretrained,
             num_classes=0,  # Remove classification head, we want features
         )
 
@@ -121,7 +121,7 @@ class CLIPEncoder(nn.Module, BaseVisionEncoder):
         return (self.embed_dim, 1, 1)
 
 
-def create_vision_encoder(config) -> BaseVisionEncoder:
+def create_vision_encoder(config, pretrained: bool = True) -> BaseVisionEncoder:
     """Create a vision encoder from config.
 
     Supports any timm model with "clip" or "dinov3" in the backbone name.
@@ -131,11 +131,11 @@ def create_vision_encoder(config) -> BaseVisionEncoder:
 
     # Check if it's a CLIP model
     if "clip" in backbone_name:
-        return CLIPEncoder(config)
+        return CLIPEncoder(config, pretrained=pretrained)
 
     # Check if it's a DinoV3 model
     elif "dinov3" in backbone_name:
-        return DinoV3Encoder(config)
+        return DinoV3Encoder(config, pretrained=pretrained)
 
     else:
         raise ValueError(
@@ -166,7 +166,7 @@ class CLIPTextEncoder(nn.Module):
     and a learnable projection layer maps the CLIP embeddings to the desired dimension.
     """
 
-    def __init__(self, model_name: str = "openai/clip-vit-base-patch16", projection_dim: int = 512):
+    def __init__(self, model_name: str = "openai/clip-vit-base-patch16", projection_dim: int = 512, pretrained: bool = True):
         super().__init__()
 
         self.model_name = model_name
@@ -174,7 +174,11 @@ class CLIPTextEncoder(nn.Module):
 
         # Load CLIP text encoder and tokenizer
         self.tokenizer = CLIPTokenizer.from_pretrained(model_name)
-        self.text_encoder = CLIPTextModel.from_pretrained(model_name)
+        if pretrained:
+            self.text_encoder = CLIPTextModel.from_pretrained(model_name)
+        else:
+            text_config = CLIPTextConfig.from_pretrained(model_name)
+            self.text_encoder = CLIPTextModel(text_config)
 
         # Freeze all CLIP text encoder parameters
         for param in self.text_encoder.parameters():
@@ -217,7 +221,7 @@ class CLIPTextEncoder(nn.Module):
 class ObservationEncoder(nn.Module):
     """Handles all observation processing for the conditioning vector."""
 
-    def __init__(self, config):
+    def __init__(self, config, load_pretrained_backbones: bool = True):
         super().__init__()
         self.config = config
         vision_config = config.observation_encoder.vision
@@ -229,10 +233,12 @@ class ObservationEncoder(nn.Module):
             self.camera_names = list(config.image_features.keys())  # Preserve ordering
 
             if vision_config.use_separate_encoder_per_camera:
-                self.vision_encoders = nn.ModuleList([create_vision_encoder(vision_config) for _ in self.camera_names])
+                self.vision_encoders = nn.ModuleList(
+                    [create_vision_encoder(vision_config, pretrained=load_pretrained_backbones) for _ in self.camera_names]
+                )
                 self.vision_encoder = None
             else:
-                self.vision_encoder = create_vision_encoder(vision_config)
+                self.vision_encoder = create_vision_encoder(vision_config, pretrained=load_pretrained_backbones)
                 self.vision_encoders = None
         else:
             self.vision_encoder = None
@@ -252,7 +258,11 @@ class ObservationEncoder(nn.Module):
 
         text_config = config.observation_encoder.text
         self.text_dim = config.transformer.hidden_dim
-        self.text_encoder = CLIPTextEncoder(model_name=text_config.model, projection_dim=self.text_dim)
+        self.text_encoder = CLIPTextEncoder(
+            model_name=text_config.model,
+            projection_dim=self.text_dim,
+            pretrained=load_pretrained_backbones,
+        )
 
         self._setup_vector_output()
 

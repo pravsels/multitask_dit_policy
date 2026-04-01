@@ -44,7 +44,12 @@ class MultiTaskDiTPolicy(nn.Module):
     config_class = MultiTaskDiTConfig
     name = "multi_task_dit"
 
-    def __init__(self, config: MultiTaskDiTConfig, dataset_metadata: LeRobotDatasetMetadata | None = None):
+    def __init__(
+        self,
+        config: MultiTaskDiTConfig,
+        dataset_metadata: LeRobotDatasetMetadata | None = None,
+        load_pretrained_backbones: bool = True,
+    ):
         super().__init__()
 
         # Extract features from dataset metadata if provided and features aren't already set
@@ -77,7 +82,10 @@ class MultiTaskDiTPolicy(nn.Module):
 
         self._queues = None
 
-        self.observation_encoder = ObservationEncoder(config)
+        self.observation_encoder = ObservationEncoder(
+            config,
+            load_pretrained_backbones=load_pretrained_backbones,
+        )
         conditioning_dim = self.observation_encoder.conditioning_dim
         self.noise_predictor = DiffusionTransformer(config, conditioning_dim=conditioning_dim)
 
@@ -230,7 +238,9 @@ class MultiTaskDiTPolicy(nn.Module):
             with open(config_file) as f:
                 config = draccus.load(MultiTaskDiTConfig, f)
 
-        model = MultiTaskDiTPolicy(config)
+        # Checkpoint loading should restore encoder weights from safetensors
+        # rather than pulling the upstream pretrained backbones first.
+        model = MultiTaskDiTPolicy(config, load_pretrained_backbones=False)
 
         # Load model weights from safetensors (matching lerobot convention)
         model_file = path / "model.safetensors"
