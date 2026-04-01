@@ -367,6 +367,7 @@ class MultiTaskDiTConfig:
         }
     )
 
+    # Default trim keeps only windows with a full, unpadded action horizon.
     drop_n_last_frames: int | None = None  # Auto-calculated: horizon - n_action_steps - n_obs_steps + 1
     observation_encoder: ObservationEncoderConfig = field(default_factory=ObservationEncoderConfig)
     transformer: TransformerConfig = field(default_factory=TransformerConfig)
@@ -387,6 +388,8 @@ class MultiTaskDiTConfig:
     def __post_init__(self):
         if self.drop_n_last_frames is None:
             self.drop_n_last_frames = self.horizon - self.n_action_steps - self.n_obs_steps + 1
+        elif self.drop_n_last_frames < 0:
+            raise ValueError(f"drop_n_last_frames must be non-negative, got {self.drop_n_last_frames}")
 
         # Convert feature dictionaries to PolicyFeature objects if they were loaded from JSON
         # (when loading from JSON, draccus parses them as plain dicts)

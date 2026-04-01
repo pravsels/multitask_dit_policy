@@ -32,7 +32,7 @@ HF_LEROBOT_HOME="${HF_CACHE}/lerobot"
 WANDB_DIR="${data_dir}"
 WANDB_CACHE_DIR="${scratch_dir}/.cache/wandb"
 WANDB_CONFIG_DIR="${scratch_dir}/.config/wandb"
-OUTPUT_DIR="${data_dir}/outputs"
+OUTPUT_DIR="${OUTPUT_DIR:-${data_dir}/outputs}"
 
 mkdir -p "${HF_CACHE}" "${HF_LEROBOT_HOME}" "${WANDB_CACHE_DIR}" "${WANDB_CONFIG_DIR}" "${OUTPUT_DIR}"
 
@@ -44,11 +44,22 @@ echo "Started (UTC): ${start_time}"
 echo "===================================="
 
 # Experiment config — use REPO_DIR, not SCRIPT_DIR (Slurm copies scripts to spool).
-CONFIG_FILE="${repo_dir}/config/train_coffee_capsules.yaml"
+CONFIG_FILE="${CONFIG_FILE:-${repo_dir}/config/train_coffee_capsules.yaml}"
+EXTRA_TRAIN_ARGS_B64="${EXTRA_TRAIN_ARGS_B64:-}"
+EXTRA_TRAIN_ARGS=""
+if [ -n "${EXTRA_TRAIN_ARGS_B64}" ]; then
+    EXTRA_TRAIN_ARGS="$(printf '%s' "${EXTRA_TRAIN_ARGS_B64}" | base64 --decode)"
+fi
 
-TRAIN_CMD="python3 -m multitask_dit_policy.train \
-    --config_path ${CONFIG_FILE} \
-    --output_dir ${OUTPUT_DIR}"
+printf -v TRAIN_CMD 'python3 -m multitask_dit_policy.train --config_path %q --output_dir %q' "${CONFIG_FILE}" "${OUTPUT_DIR}"
+if [ -n "${EXTRA_TRAIN_ARGS}" ]; then
+    TRAIN_CMD="${TRAIN_CMD} ${EXTRA_TRAIN_ARGS}"
+fi
+echo "Config file: ${CONFIG_FILE}"
+echo "Output dir: ${OUTPUT_DIR}"
+if [ -n "${EXTRA_TRAIN_ARGS}" ]; then
+    echo "Extra train args: ${EXTRA_TRAIN_ARGS}"
+fi
 
 WANDB_TOKEN_FILE="${scratch_dir}/.wandb_token"
 if [ -f "${WANDB_TOKEN_FILE}" ]; then

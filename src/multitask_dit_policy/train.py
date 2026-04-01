@@ -23,6 +23,7 @@ for which this training script is adapted from.
 """
 
 import logging
+import math
 import os
 import random
 import warnings
@@ -86,12 +87,76 @@ class TrainConfig:
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
     use_amp: bool = False
     seed: int = 17
+    lr_scheduler: str = "cosine"
+    lr_warmup_steps: int = 500
+    lr_scheduler_min_lr_scale: float = 0.1
 
     # Checkpoint loading
     checkpoint_path: str | None = None
 
     # Policy parameters
     policy: MultiTaskDiTConfig = field(default_factory=MultiTaskDiTConfig)
+
+    def __post_init__(self):
+        valid_schedulers = {"constant", "cosine"}
+        if self.lr_scheduler not in valid_schedulers:
+            raise ValueError(f"lr_scheduler must be one of {sorted(valid_schedulers)}, got {self.lr_scheduler}")
+        if self.lr_warmup_steps < 0:
+            raise ValueError(f"lr_warmup_steps must be non-negative, got {self.lr_warmup_steps}")
+        if not 0.0 <= self.lr_scheduler_min_lr_scale <= 1.0:
+            raise ValueError(
+                "lr_scheduler_min_lr_scale must be in [0, 1], "
+                f"got {self.lr_scheduler_min_lr_scale}"
+            )
+
+
+def compute_lr_scale(
+    step: int,
+    *,
+    total_steps: int,
+    warmup_steps: int,
+    min_lr_scale: float,
+) -> float:
+    if total_steps <= 0:
+        raise ValueError(f"total_steps must be positive, got {total_steps}")
+    if step < 0:
+        raise ValueError(f"step must be non-negative, got {step}")
+    if warmup_steps < 0:
+        raise ValueError(f"warmup_steps must be non-negative, got {warmup_steps}")
+    if not 0.0 <= min_lr_scale <= 1.0:
+        raise ValueError(f"min_lr_scale must be in [0, 1], got {min_lr_scale}")
+
+    if warmup_steps > 0 and step < warmup_steps:
+        return (step + 1) / warmup_steps
+
+    if total_steps <= warmup_steps:
+        return 1.0
+
+    decay_steps = max(1, total_steps - warmup_steps - 1)
+    decay_progress = min(1.0, (step - warmup_steps) / decay_steps)
+    cosine_scale = 0.5 * (1.0 + math.cos(math.pi * decay_progress))
+    return min_lr_scale + (1.0 - min_lr_scale) * cosine_scale
+
+
+def build_lr_scheduler(
+    optimizer: torch.optim.Optimizer,
+    cfg: TrainConfig,
+) -> torch.optim.lr_scheduler.LRScheduler | None:
+    if cfg.lr_scheduler == "constant":
+        return None
+
+    if cfg.lr_scheduler == "cosine":
+        return torch.optim.lr_scheduler.LambdaLR(
+            optimizer,
+            lr_lambda=lambda step: compute_lr_scale(
+                step,
+                total_steps=cfg.train_steps,
+                warmup_steps=cfg.lr_warmup_steps,
+                min_lr_scale=cfg.lr_scheduler_min_lr_scale,
+            ),
+        )
+
+    raise ValueError(f"Unsupported lr_scheduler: {cfg.lr_scheduler}")
 
 
 def train(cfg: TrainConfig):
@@ -226,6 +291,7 @@ def train(cfg: TrainConfig):
         eps=optimizer_config.eps,
         weight_decay=optimizer_config.weight_decay,
     )
+    scheduler = build_lr_scheduler(optimizer, cfg)
 
     use_amp = cfg.use_amp and cfg.device.startswith("cuda")
     scaler = torch.amp.GradScaler(enabled=use_amp)
@@ -242,6 +308,8 @@ def train(cfg: TrainConfig):
             step = train_state["step"]
             optimizer.load_state_dict(train_state["optimizer"])
             scaler.load_state_dict(train_state["scaler"])
+            if scheduler is not None and train_state.get("scheduler") is not None:
+                scheduler.load_state_dict(train_state["scheduler"])
             logging.info(f"Resumed training state from step {step}")
         else:
             logging.warning(f"No train_state.pt in checkpoint, starting optimizer from scratch")
@@ -270,6 +338,8 @@ def train(cfg: TrainConfig):
         grad_norm = torch.nn.utils.clip_grad_norm_(policy.parameters(), 1.0)
         scaler.step(optimizer)
         scaler.update()
+        if scheduler is not None:
+            scheduler.step()
 
         step += 1
 
@@ -280,6 +350,7 @@ def train(cfg: TrainConfig):
             torch.save({
                 "step": step,
                 "optimizer": optimizer.state_dict(),
+                "scheduler": scheduler.state_dict() if scheduler is not None else None,
                 "scaler": scaler.state_dict(),
             }, save_path / "train_state.pt")
             logging.info(f"Saved checkpoint to {save_path}")
@@ -303,6 +374,7 @@ def train(cfg: TrainConfig):
     torch.save({
         "step": step,
         "optimizer": optimizer.state_dict(),
+        "scheduler": scheduler.state_dict() if scheduler is not None else None,
         "scaler": scaler.state_dict(),
     }, final_dir / "train_state.pt")
     logging.info("Training finished.")

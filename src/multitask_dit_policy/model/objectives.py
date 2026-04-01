@@ -130,8 +130,10 @@ class DiffusionObjective(BaseObjective):
         predicted = model(noisy_actions, timesteps, conditioning_vec=conditioning_vec)
         loss = F.mse_loss(predicted, target, reduction="none")
 
-        if self.do_mask_loss_for_padding and "action_is_pad" in batch:
-            valid_actions = ~batch["action_is_pad"]  # (B, T)
+        if self.do_mask_loss_for_padding:
+            if "action_is_pad" not in batch:
+                raise ValueError("do_mask_loss_for_padding=True requires `action_is_pad` in the batch")
+            valid_actions = ~batch["action_is_pad"].bool()  # (B, T)
             loss = loss * valid_actions.unsqueeze(-1)
 
         return loss.mean()
@@ -208,8 +210,10 @@ class FlowMatchingObjective(BaseObjective):
         loss = F.mse_loss(predicted_velocity, target_velocity, reduction="none")
 
         # Optionally mask padded actions
-        if self.do_mask_loss_for_padding and "action_is_pad" in batch:
-            valid_mask = ~batch["action_is_pad"]  # (B, T)
+        if self.do_mask_loss_for_padding:
+            if "action_is_pad" not in batch:
+                raise ValueError("do_mask_loss_for_padding=True requires `action_is_pad` in the batch")
+            valid_mask = ~batch["action_is_pad"].bool()  # (B, T)
             loss = loss * valid_mask.unsqueeze(-1)  # (B, T, D)
 
         return loss.mean()

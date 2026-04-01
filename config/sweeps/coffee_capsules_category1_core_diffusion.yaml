@@ -1,0 +1,46 @@
+study_name: coffee_capsules_category1_core_diffusion
+description: Category 1 core diffusion ablations around the cleaned coffee-capsules baseline.
+base_config: config/train_coffee_capsules.yaml
+output_dir: /scratch/u6cr/pravsels.u6cr/multitask_dit_policy/outputs
+slurm_script: slurm/train.sh
+shared_overrides: []
+variants:
+  - name: baseline
+    description: Clean baseline config as-is.
+    overrides: []
+  - name: ddpm_20
+    description: Keep DDPM and reduce inference steps to 20.
+    overrides:
+      - --policy.objective.noise_scheduler_type=DDPM
+      - --policy.objective.num_inference_steps=20
+  - name: ddpm_50
+    description: Keep DDPM and reduce inference steps to 50.
+    overrides:
+      - --policy.objective.noise_scheduler_type=DDPM
+      - --policy.objective.num_inference_steps=50
+  - name: ddpm_rope
+    description: Keep DDPM baseline sampler and enable RoPE.
+    overrides:
+      - --policy.transformer.use_rope=true
+  - name: ddim_20
+    description: Switch sampler to DDIM with 20 inference steps.
+    overrides:
+      - --policy.objective.noise_scheduler_type=DDIM
+      - --policy.objective.num_inference_steps=20
+  - name: ddim_50
+    description: Switch sampler to DDIM with 50 inference steps.
+    overrides:
+      - --policy.objective.noise_scheduler_type=DDIM
+      - --policy.objective.num_inference_steps=50
+  - name: ddim_rope_20
+    description: Enable RoPE and use DDIM with 20 inference steps.
+    overrides:
+      - --policy.objective.noise_scheduler_type=DDIM
+      - --policy.objective.num_inference_steps=20
+      - --policy.transformer.use_rope=true
+  - name: ddim_rope_50
+    description: Enable RoPE and use DDIM with 50 inference steps.
+    overrides:
+      - --policy.objective.noise_scheduler_type=DDIM
+      - --policy.objective.num_inference_steps=50
+      - --policy.transformer.use_rope=true
