@@ -336,6 +336,29 @@ class CLIPTextEncoderConfig(TextEncoderConfig):
 
 
 @dataclass
+class MultimodalEncoderConfig(draccus.ChoiceRegistry):
+    """Base configuration for unified multimodal encoders."""
+
+    freeze_backbone: bool = True
+
+
+@MultimodalEncoderConfig.register_subclass("pooled")
+@dataclass
+class PooledMultimodalEncoderConfig(MultimodalEncoderConfig):
+    """Pooled Hugging Face multimodal encoder configuration."""
+
+    model: str = "Qwen/Qwen3.5-4B"
+    output_dim: int = 512
+    max_text_length: int = 128
+
+    def __post_init__(self):
+        if self.output_dim <= 0:
+            raise ValueError(f"output_dim must be positive, got {self.output_dim}")
+        if self.max_text_length <= 0:
+            raise ValueError(f"max_text_length must be positive, got {self.max_text_length}")
+
+
+@dataclass
 class ObservationEncoderConfig:
     """Top-level configuration for observation encoding.
 
@@ -345,6 +368,11 @@ class ObservationEncoderConfig:
 
     vision: VisionEncoderConfig = field(default_factory=CLIPVisionEncoderConfig)
     text: TextEncoderConfig = field(default_factory=CLIPTextEncoderConfig)
+    multimodal: MultimodalEncoderConfig | None = None
+
+    @property
+    def uses_multimodal_encoder(self) -> bool:
+        return self.multimodal is not None
 
 
 @dataclass

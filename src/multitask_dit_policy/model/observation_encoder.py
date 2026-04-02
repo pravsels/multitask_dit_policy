@@ -28,7 +28,14 @@ import torch.nn as nn
 import torchvision
 from lerobot.utils.constants import OBS_ENV_STATE, OBS_IMAGES, OBS_STATE
 from torch import Tensor
-from transformers import CLIPTextConfig, CLIPTextModel, CLIPTokenizer
+from transformers import (
+    AutoConfig,
+    AutoModelForImageTextToText,
+    AutoProcessor,
+    CLIPTextConfig,
+    CLIPTextModel,
+    CLIPTokenizer,
+)
 
 
 class BaseVisionEncoder(ABC):
@@ -42,6 +49,20 @@ class BaseVisionEncoder(ABC):
     @abstractmethod
     def get_output_shape(self) -> tuple:
         """Get the output shape (C', H', W')."""
+        pass
+
+
+class BaseMultimodalEncoder(ABC):
+    """Abstract base class for unified multimodal encoders."""
+
+    @abstractmethod
+    def forward(self, batch: dict) -> Tensor:
+        """Encode batch observations into timestep-aligned multimodal features."""
+        pass
+
+    @abstractmethod
+    def get_output_dim(self) -> int:
+        """Return the per-timestep multimodal feature dimension."""
         pass
 
 
@@ -218,6 +239,127 @@ class CLIPTextEncoder(nn.Module):
         return projected_features
 
 
+class PooledHuggingFaceMultimodalEncoder(nn.Module, BaseMultimodalEncoder):
+    """Pooled multimodal encoder backed by a Hugging Face image-text model."""
+
+    def __init__(self, config, pretrained: bool = True):
+        super().__init__()
+        self.config = config
+        self.output_dim = config.output_dim
+        self.processor = AutoProcessor.from_pretrained(config.model)
+        if pretrained:
+            self.model = AutoModelForImageTextToText.from_pretrained(config.model)
+        else:
+            model_config = AutoConfig.from_pretrained(config.model)
+            self.model = AutoModelForImageTextToText.from_config(model_config)
+
+        if config.freeze_backbone:
+            for param in self.model.parameters():
+                param.requires_grad = False
+
+        hidden_size = self._get_hidden_size()
+        self.projection = nn.Linear(hidden_size, self.output_dim)
+
+    def _get_hidden_size(self) -> int:
+        if hasattr(self.model.config, "hidden_size"):
+            return self.model.config.hidden_size
+        if hasattr(self.model.config, "text_config") and hasattr(self.model.config.text_config, "hidden_size"):
+            return self.model.config.text_config.hidden_size
+        raise ValueError(f"Could not determine hidden size for multimodal model config: {self.model.config}")
+
+    def get_output_dim(self) -> int:
+        return self.output_dim
+
+    def _expand_text_per_timestep(self, task: str | list[str] | None, n_obs_steps: int, batch_size: int) -> list[str]:
+        if task is None:
+            task_text = [""] * batch_size
+        elif isinstance(task, str):
+            task_text = [task] * batch_size
+        else:
+            task_text = list(task)
+
+        if len(task_text) != batch_size:
+            raise ValueError(f"Expected {batch_size} task strings, got {len(task_text)}")
+
+        return [text for text in task_text for _ in range(n_obs_steps)]
+
+    def _convert_images_for_processor(self, images: Tensor) -> list[list]:
+        images_cpu = images.detach().cpu()
+        return [
+            [torchvision.transforms.functional.to_pil_image(image) for image in sample_images]
+            for sample_images in images_cpu
+        ]
+
+    def _pool_hidden_states(self, hidden_states: Tensor, attention_mask: Tensor | None) -> Tensor:
+        if attention_mask is None or attention_mask.shape[:2] != hidden_states.shape[:2]:
+            return hidden_states.mean(dim=1)
+
+        mask = attention_mask.unsqueeze(-1).to(hidden_states.dtype)
+        denom = mask.sum(dim=1).clamp_min(1.0)
+        return (hidden_states * mask).sum(dim=1) / denom
+
+    def forward(self, batch: dict) -> Tensor:
+        images = batch.get(OBS_IMAGES)
+        if images is None:
+            raise ValueError("Multimodal encoder requires observation images")
+        if len(images.shape) != 6:
+            raise ValueError(f"Expected observation images with shape (B, T, N, C, H, W), got {tuple(images.shape)}")
+
+        batch_size, n_obs_steps = batch[OBS_STATE].shape[:2]
+        flat_text = self._expand_text_per_timestep(batch.get("task"), n_obs_steps=n_obs_steps, batch_size=batch_size)
+        flat_images = einops.rearrange(images, "b s n c h w -> (b s) n c h w")
+        processor_images = self._convert_images_for_processor(flat_images)
+
+        processor_inputs = self.processor(
+            text=flat_text,
+            images=processor_images,
+            padding=True,
+            truncation=True,
+            max_length=self.config.max_text_length,
+            return_tensors="pt",
+        )
+
+        model_device = next(self.model.parameters()).device
+        model_inputs = {
+            key: value.to(model_device) if isinstance(value, torch.Tensor) else value
+            for key, value in processor_inputs.items()
+        }
+        outputs = self.model(**model_inputs, output_hidden_states=True)
+        hidden_states = outputs.hidden_states[-1]
+        pooled = self._pool_hidden_states(hidden_states, model_inputs.get("attention_mask"))
+        projected = self.projection(pooled)
+        return einops.rearrange(projected, "(b s) f -> b s f", b=batch_size, s=n_obs_steps)
+
+
+def create_text_encoder(config, projection_dim: int, pretrained: bool = True) -> nn.Module:
+    """Create a legacy text encoder from config."""
+    model_name = getattr(config, "model", "")
+    if "clip" in model_name.lower():
+        return CLIPTextEncoder(
+            model_name=model_name,
+            projection_dim=projection_dim,
+            pretrained=pretrained,
+        )
+
+    raise ValueError(f"Unsupported text encoder config: {config}")
+
+
+def create_multimodal_encoder(config, pretrained: bool = True) -> BaseMultimodalEncoder:
+    """Create a unified multimodal encoder from config.
+
+    Stage 1 only establishes the integration seam. Concrete encoders such as
+    Qwen-backed implementations will plug into this factory later.
+    """
+    from multitask_dit_policy.utils.configuration import PooledMultimodalEncoderConfig
+
+    if isinstance(config, PooledMultimodalEncoderConfig):
+        return PooledHuggingFaceMultimodalEncoder(config, pretrained=pretrained)
+
+    raise NotImplementedError(
+        f"Multimodal encoder type '{getattr(config, 'type', type(config).__name__)}' is not implemented yet"
+    )
+
+
 class ObservationEncoder(nn.Module):
     """Handles all observation processing for the conditioning vector."""
 
@@ -225,26 +367,34 @@ class ObservationEncoder(nn.Module):
         super().__init__()
         self.config = config
         vision_config = config.observation_encoder.vision
+        self.text_dim = config.transformer.hidden_dim
+        self.multimodal_encoder = None
 
         self._setup_preprocessing(vision_config)
 
         if config.image_features:
             self.num_cameras = len(config.image_features)
             self.camera_names = list(config.image_features.keys())  # Preserve ordering
+        else:
+            self.camera_names = []
+            self.num_cameras = 0
 
+        self.vision_encoder = None
+        self.vision_encoders = None
+        self.text_encoder = None
+
+        if config.observation_encoder.uses_multimodal_encoder:
+            self.multimodal_encoder = create_multimodal_encoder(
+                config.observation_encoder.multimodal,
+                pretrained=load_pretrained_backbones,
+            )
+        elif config.image_features:
             if vision_config.use_separate_encoder_per_camera:
                 self.vision_encoders = nn.ModuleList(
                     [create_vision_encoder(vision_config, pretrained=load_pretrained_backbones) for _ in self.camera_names]
                 )
-                self.vision_encoder = None
             else:
                 self.vision_encoder = create_vision_encoder(vision_config, pretrained=load_pretrained_backbones)
-                self.vision_encoders = None
-        else:
-            self.vision_encoder = None
-            self.vision_encoders = None
-            self.camera_names = []
-            self.num_cameras = 0
 
         if hasattr(config, "robot_state_feature") and config.robot_state_feature:
             self.robot_state_dim = config.robot_state_feature.shape[0]
@@ -256,13 +406,13 @@ class ObservationEncoder(nn.Module):
         else:
             self.env_state_dim = 0
 
-        text_config = config.observation_encoder.text
-        self.text_dim = config.transformer.hidden_dim
-        self.text_encoder = CLIPTextEncoder(
-            model_name=text_config.model,
-            projection_dim=self.text_dim,
-            pretrained=load_pretrained_backbones,
-        )
+        if not config.observation_encoder.uses_multimodal_encoder:
+            text_config = config.observation_encoder.text
+            self.text_encoder = create_text_encoder(
+                text_config,
+                projection_dim=self.text_dim,
+                pretrained=load_pretrained_backbones,
+            )
 
         self._setup_vector_output()
 
@@ -300,8 +450,11 @@ class ObservationEncoder(nn.Module):
         """Setup for vector output."""
         total_dim = 0
 
+        if self.multimodal_encoder is not None:
+            total_dim += self.multimodal_encoder.get_output_dim()
+
         # Vision features - get CLS token feature dimension
-        if self.vision_encoder is not None or self.vision_encoders is not None:
+        elif self.vision_encoder is not None or self.vision_encoders is not None:
             encoder_to_check = self.vision_encoder or self.vision_encoders[0]
 
             # Get output shape from encoder (deterministic for CLS tokens)
@@ -316,7 +469,8 @@ class ObservationEncoder(nn.Module):
         total_dim += self.env_state_dim
 
         # Text features
-        total_dim += self.text_dim
+        if self.text_encoder is not None:
+            total_dim += self.text_dim
 
         # Account for temporal stacking
         self.conditioning_dim = total_dim * self.config.n_obs_steps
@@ -328,7 +482,29 @@ class ObservationEncoder(nn.Module):
 
         conditioning_feats.append(batch[OBS_STATE])
 
-        if self.vision_encoder is not None or self.vision_encoders is not None:
+        if self.multimodal_encoder is not None:
+            multimodal_batch = dict(batch)
+
+            if OBS_IMAGES in batch:
+                images = batch[OBS_IMAGES]
+                if len(images.shape) == 5:
+                    images = images.unsqueeze(1)
+
+                images_shape = images.shape
+                images_flat = einops.rearrange(images, "b s n c h w -> (b s n) c h w")
+                images_flat = self._apply_preprocessing(images_flat)
+                multimodal_batch[OBS_IMAGES] = einops.rearrange(
+                    images_flat,
+                    "(b s n) c h w -> b s n c h w",
+                    b=images_shape[0],
+                    s=images_shape[1],
+                    n=images_shape[2],
+                )
+
+            multimodal_features = self.multimodal_encoder(multimodal_batch)
+            conditioning_feats.append(multimodal_features)
+
+        elif self.vision_encoder is not None or self.vision_encoders is not None:
             images = batch[OBS_IMAGES]  # (B, n_obs_steps, num_cameras, C, H, W)
 
             # Handle case when n_obs=1 and time dimension might be squeezed
