@@ -72,6 +72,47 @@ class FakeProcessor:
         }
 
 
+class FakeChatTemplateProcessor:
+    last_call: dict | None = None
+
+    @classmethod
+    def from_pretrained(cls, model_name: str):
+        instance = cls()
+        instance.model_name = model_name
+        return instance
+
+    def __call__(self, *args, **kwargs):
+        raise AssertionError("Qwen multimodal path should use apply_chat_template, not plain processor(text=..., images=...)")
+
+    def apply_chat_template(
+        self,
+        messages,
+        tokenize,
+        add_generation_prompt,
+        return_dict,
+        return_tensors,
+        padding,
+        truncation,
+        max_length,
+    ):
+        type(self).last_call = {
+            "messages": messages,
+            "tokenize": tokenize,
+            "add_generation_prompt": add_generation_prompt,
+            "return_dict": return_dict,
+            "return_tensors": return_tensors,
+            "padding": padding,
+            "truncation": truncation,
+            "max_length": max_length,
+        }
+        batch_size = len(messages)
+        return {
+            "input_ids": torch.ones((batch_size, 4), dtype=torch.long),
+            "attention_mask": torch.tensor([[1, 1, 1, 0]] * batch_size, dtype=torch.long),
+            "pixel_values": torch.zeros((batch_size, 1), dtype=torch.float32),
+        }
+
+
 class FakeHFMultimodalModel(nn.Module):
     def __init__(self):
         super().__init__()
@@ -210,3 +251,33 @@ def test_pooled_multimodal_encoder_forward_pools_hidden_states(monkeypatch):
     assert len(FakeProcessor.last_call["images"]) == 4
     assert all(len(sample_images) == 2 for sample_images in FakeProcessor.last_call["images"])
     assert FakeProcessor.last_call["max_length"] == 32
+
+
+def test_pooled_multimodal_encoder_uses_chat_template_for_qwen_processors(monkeypatch):
+    monkeypatch.setattr(observation_encoder_module, "AutoProcessor", FakeChatTemplateProcessor)
+    monkeypatch.setattr(observation_encoder_module, "AutoModelForImageTextToText", FakeHFMultimodalModel)
+
+    config = PooledMultimodalEncoderConfig(model="Qwen/Qwen3-VL-4B-Instruct", output_dim=5, freeze_backbone=True)
+
+    encoder = observation_encoder_module.create_multimodal_encoder(config, pretrained=True)
+    with torch.no_grad():
+        encoder.projection.weight.copy_(torch.eye(5))
+        encoder.projection.bias.zero_()
+
+    batch = {
+        "observation.state": torch.zeros((2, 2, 3)),
+        "observation.images": torch.zeros((2, 2, 2, 3, 8, 8)),
+        "task": ["pick", "place"],
+    }
+
+    features = encoder(batch)
+
+    messages = FakeChatTemplateProcessor.last_call["messages"]
+    assert features.shape == (2, 2, 5)
+    assert len(messages) == 4
+    assert messages[0]["role"] == "user"
+    assert [item["type"] for item in messages[0]["content"]] == ["image", "image", "text"]
+    assert messages[0]["content"][-1]["text"] == "pick"
+    assert messages[-1]["content"][-1]["text"] == "place"
+    assert FakeChatTemplateProcessor.last_call["add_generation_prompt"] is False
+    assert FakeChatTemplateProcessor.last_call["max_length"] == 128

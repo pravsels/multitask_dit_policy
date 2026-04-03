@@ -290,6 +290,37 @@ class PooledHuggingFaceMultimodalEncoder(nn.Module, BaseMultimodalEncoder):
             for sample_images in images_cpu
         ]
 
+    def _build_chat_template_messages(self, text: list[str], images: list[list]) -> list[dict]:
+        messages = []
+        for sample_text, sample_images in zip(text, images, strict=True):
+            content = [{"type": "image", "image": image} for image in sample_images]
+            content.append({"type": "text", "text": sample_text})
+            messages.append({"role": "user", "content": content})
+        return messages
+
+    def _prepare_processor_inputs(self, text: list[str], images: list[list]) -> dict:
+        if hasattr(self.processor, "apply_chat_template"):
+            messages = self._build_chat_template_messages(text, images)
+            return self.processor.apply_chat_template(
+                messages,
+                tokenize=True,
+                add_generation_prompt=False,
+                return_dict=True,
+                return_tensors="pt",
+                padding=True,
+                truncation=True,
+                max_length=self.config.max_text_length,
+            )
+
+        return self.processor(
+            text=text,
+            images=images,
+            padding=True,
+            truncation=True,
+            max_length=self.config.max_text_length,
+            return_tensors="pt",
+        )
+
     def _pool_hidden_states(self, hidden_states: Tensor, attention_mask: Tensor | None) -> Tensor:
         if attention_mask is None or attention_mask.shape[:2] != hidden_states.shape[:2]:
             return hidden_states.mean(dim=1)
@@ -310,14 +341,7 @@ class PooledHuggingFaceMultimodalEncoder(nn.Module, BaseMultimodalEncoder):
         flat_images = einops.rearrange(images, "b s n c h w -> (b s) n c h w")
         processor_images = self._convert_images_for_processor(flat_images)
 
-        processor_inputs = self.processor(
-            text=flat_text,
-            images=processor_images,
-            padding=True,
-            truncation=True,
-            max_length=self.config.max_text_length,
-            return_tensors="pt",
-        )
+        processor_inputs = self._prepare_processor_inputs(flat_text, processor_images)
 
         model_device = next(self.model.parameters()).device
         model_inputs = {
