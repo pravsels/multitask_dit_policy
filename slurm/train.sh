@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --job-name=mtdit-train
 #SBATCH --nodes=1
-#SBATCH --gpus=1
+#SBATCH --gpus=4
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=32
 #SBATCH --mem=0G
 #SBATCH --exclusive
 #SBATCH --time=1-00:00:00
@@ -51,7 +51,7 @@ if [ -n "${EXTRA_TRAIN_ARGS_B64}" ]; then
     EXTRA_TRAIN_ARGS="$(printf '%s' "${EXTRA_TRAIN_ARGS_B64}" | base64 --decode)"
 fi
 
-printf -v TRAIN_CMD 'python3 -m multitask_dit_policy.train --config_path %q --output_dir %q' "${CONFIG_FILE}" "${OUTPUT_DIR}"
+printf -v TRAIN_CMD 'torchrun --standalone --nnodes=1 --nproc_per_node=4 -m multitask_dit_policy.train --config_path %q --output_dir %q' "${CONFIG_FILE}" "${OUTPUT_DIR}"
 if [ -n "${EXTRA_TRAIN_ARGS}" ]; then
     TRAIN_CMD="${TRAIN_CMD} ${EXTRA_TRAIN_ARGS}"
 fi
@@ -71,6 +71,7 @@ fi
 
 EXPORT_VARS="export PYTHONPATH=${repo_dir}/src:\${PYTHONPATH:-}"
 EXPORT_VARS="${EXPORT_VARS} && export PYTHONUNBUFFERED=1"
+EXPORT_VARS="${EXPORT_VARS} && export OMP_NUM_THREADS=1"
 EXPORT_VARS="${EXPORT_VARS} && export WANDB_MODE=offline"
 EXPORT_VARS="${EXPORT_VARS} && export WANDB_API_KEY=${WANDB_API_KEY:-}"
 EXPORT_VARS="${EXPORT_VARS} && export WANDB_DIR=${WANDB_DIR}"

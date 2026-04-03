@@ -90,6 +90,22 @@ To see the full list of configuration options, run:
 uv run -m multitask_dit_policy.train --help
 ```
 
+### Single-Node Multi-GPU Training
+
+Use `torchrun` for single-node DDP training. `batch_size` is interpreted per GPU, so
+`--batch_size=16` on 4 GPUs gives an effective global batch size of 64 for each optimizer step.
+
+```bash
+uv run torchrun --standalone --nnodes=1 --nproc_per_node=4 -m multitask_dit_policy.train \
+    --dataset_path=/path/to/dataset \
+    --batch_size=16 \
+    --train_steps=2000 \
+    --device=cuda \
+    --output_dir=outputs/train_multi_task_dit_ddp
+```
+
+Tune `num_workers` with DDP in mind, since it is also per process.
+
 ### Resuming Training
 
 To resume training from a checkpoint, use the `--checkpoint_path` parameter to specify the path to a previously saved checkpoint directory:
@@ -107,8 +123,20 @@ uv run -m multitask_dit_policy.train \
 **Notes:**
 - The checkpoint directory should contain `model.safetensors` and `config.json` files (saved automatically during training)
 - You can use the same `--output_dir` or specify a new one to avoid overwriting previous checkpoints
-- The model weights will be loaded from the checkpoint, but training will start from step 0 (the step counter resets)
+- Training also restores `step`, optimizer, scheduler, and AMP scaler state from `train_state.pt` when it is present
 - Ensure you use the same dataset and compatible configuration settings as the original training run
+
+To resume a single-node DDP run, use the same `torchrun --nproc_per_node=...` shape as the original run:
+
+```bash
+uv run torchrun --standalone --nnodes=1 --nproc_per_node=4 -m multitask_dit_policy.train \
+    --dataset_path=/path/to/dataset \
+    --checkpoint_path=outputs/train_multi_task_dit_ddp/checkpoint_1000 \
+    --batch_size=16 \
+    --train_steps=2000 \
+    --device=cuda \
+    --output_dir=outputs/train_multi_task_dit_ddp
+```
 
 NOTE: If you are using the toy `pusht` dataset, the images will be below the default crop shape of (224, 224) for CLIP, and you will need to resize the images using:
 ```
