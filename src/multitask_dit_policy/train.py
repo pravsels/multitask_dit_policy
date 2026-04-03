@@ -138,6 +138,19 @@ def compute_lr_scale(
     return min_lr_scale + (1.0 - min_lr_scale) * cosine_scale
 
 
+def get_amp_settings(policy: torch.nn.Module, *, device: str, use_amp: bool) -> tuple[bool, torch.dtype | None, bool]:
+    """Choose autocast dtype and whether gradient scaling is safe."""
+    amp_enabled = use_amp and device.startswith("cuda")
+    if not amp_enabled:
+        return False, None, False
+
+    param_dtypes = {param.dtype for param in policy.parameters() if param.is_floating_point()}
+    if torch.bfloat16 in param_dtypes:
+        return True, torch.bfloat16, False
+
+    return True, torch.float16, True
+
+
 def build_lr_scheduler(
     optimizer: torch.optim.Optimizer,
     cfg: TrainConfig,
@@ -293,10 +306,11 @@ def train(cfg: TrainConfig):
     )
     scheduler = build_lr_scheduler(optimizer, cfg)
 
-    use_amp = cfg.use_amp and cfg.device.startswith("cuda")
-    scaler = torch.amp.GradScaler(enabled=use_amp)
-    if use_amp:
-        logging.info("Using Automatic Mixed Precision (AMP) for training")
+    amp_enabled, amp_dtype, use_grad_scaler = get_amp_settings(policy, device=cfg.device, use_amp=cfg.use_amp)
+    scaler = torch.amp.GradScaler(enabled=use_grad_scaler)
+    if amp_enabled:
+        scaler_mode = "enabled" if use_grad_scaler else "disabled"
+        logging.info(f"Using Automatic Mixed Precision (dtype={amp_dtype}, grad_scaler={scaler_mode})")
 
     step = 0
 
@@ -330,14 +344,19 @@ def train(cfg: TrainConfig):
 
         optimizer.zero_grad()
 
-        with torch.amp.autocast(device_type=cfg.device, enabled=use_amp):
+        with torch.amp.autocast(device_type=cfg.device, enabled=amp_enabled, dtype=amp_dtype):
             loss, _ = policy(normalized_batch)
 
-        scaler.scale(loss).backward()
-        scaler.unscale_(optimizer)
-        grad_norm = torch.nn.utils.clip_grad_norm_(policy.parameters(), 1.0)
-        scaler.step(optimizer)
-        scaler.update()
+        if use_grad_scaler:
+            scaler.scale(loss).backward()
+            scaler.unscale_(optimizer)
+            grad_norm = torch.nn.utils.clip_grad_norm_(policy.parameters(), 1.0)
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            loss.backward()
+            grad_norm = torch.nn.utils.clip_grad_norm_(policy.parameters(), 1.0)
+            optimizer.step()
         if scheduler is not None:
             scheduler.step()
 
