@@ -1,7 +1,7 @@
 dataset_path: villekuosmanen/bin_pick_pack_coffee_capsules
 run_name: coffee_capsules_qwen_pooled_v1
 
-batch_size: 64
+batch_size: 32
 num_workers: 8
 train_steps: 50000
 save_freq: 5000
