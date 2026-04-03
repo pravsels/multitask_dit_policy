@@ -349,6 +349,7 @@ class PooledHuggingFaceMultimodalEncoder(nn.Module, BaseMultimodalEncoder):
         outputs = self.model(**model_inputs, output_hidden_states=True)
         hidden_states = outputs.hidden_states[-1]
         pooled = self._pool_hidden_states(hidden_states, model_inputs.get("attention_mask"))
+        pooled = pooled.to(self.projection.weight.dtype)
         projected = self.projection(pooled)
         return einops.rearrange(projected, "(b s) f -> b s f", b=batch_size, s=n_obs_steps)
 

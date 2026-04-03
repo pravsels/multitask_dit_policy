@@ -131,6 +131,18 @@ class FakeHFMultimodalModel(nn.Module):
         return SimpleNamespace(hidden_states=[hidden])
 
 
+class FakeBFloat16HFMultimodalModel(FakeHFMultimodalModel):
+    def forward(self, input_ids=None, attention_mask=None, pixel_values=None, output_hidden_states=False, **kwargs):
+        outputs = super().forward(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            pixel_values=pixel_values,
+            output_hidden_states=output_hidden_states,
+            **kwargs,
+        )
+        return SimpleNamespace(hidden_states=[outputs.hidden_states[-1].to(torch.bfloat16)])
+
+
 def test_observation_encoder_supports_separate_encoder_per_camera(monkeypatch):
     monkeypatch.setattr(observation_encoder_module, "create_vision_encoder", lambda config, pretrained=True: FakeVisionEncoder())
     monkeypatch.setattr(observation_encoder_module, "CLIPTextEncoder", FakeTextEncoder)
@@ -277,3 +289,23 @@ def test_pooled_multimodal_encoder_uses_chat_template_for_qwen_processors(monkey
     assert messages[-1]["content"][-1]["text"] == "place"
     assert FakeChatTemplateProcessor.last_call["add_generation_prompt"] is False
     assert FakeChatTemplateProcessor.last_call["processor_kwargs"] == {"padding": True}
+
+
+def test_pooled_multimodal_encoder_casts_hidden_states_for_projection(monkeypatch):
+    monkeypatch.setattr(observation_encoder_module, "AutoProcessor", FakeProcessor)
+    monkeypatch.setattr(observation_encoder_module, "AutoModelForImageTextToText", FakeBFloat16HFMultimodalModel)
+
+    config = PooledMultimodalEncoderConfig(model="fake-qwen", output_dim=5, freeze_backbone=True)
+
+    encoder = observation_encoder_module.create_multimodal_encoder(config, pretrained=True)
+
+    batch = {
+        "observation.state": torch.zeros((1, 2, 3)),
+        "observation.images": torch.zeros((1, 2, 1, 3, 8, 8)),
+        "task": ["pick"],
+    }
+
+    features = encoder(batch)
+
+    assert features.shape == (1, 2, 5)
+    assert features.dtype == encoder.projection.weight.dtype
