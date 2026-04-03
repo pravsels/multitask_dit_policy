@@ -307,9 +307,7 @@ class PooledHuggingFaceMultimodalEncoder(nn.Module, BaseMultimodalEncoder):
                 add_generation_prompt=False,
                 return_dict=True,
                 return_tensors="pt",
-                padding=True,
-                truncation=True,
-                max_length=self.config.max_text_length,
+                processor_kwargs={"padding": True},
             )
 
         return self.processor(

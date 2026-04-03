@@ -91,9 +91,7 @@ class FakeChatTemplateProcessor:
         add_generation_prompt,
         return_dict,
         return_tensors,
-        padding,
-        truncation,
-        max_length,
+        processor_kwargs,
     ):
         type(self).last_call = {
             "messages": messages,
@@ -101,9 +99,7 @@ class FakeChatTemplateProcessor:
             "add_generation_prompt": add_generation_prompt,
             "return_dict": return_dict,
             "return_tensors": return_tensors,
-            "padding": padding,
-            "truncation": truncation,
-            "max_length": max_length,
+            "processor_kwargs": processor_kwargs,
         }
         batch_size = len(messages)
         return {
@@ -280,4 +276,4 @@ def test_pooled_multimodal_encoder_uses_chat_template_for_qwen_processors(monkey
     assert messages[0]["content"][-1]["text"] == "pick"
     assert messages[-1]["content"][-1]["text"] == "place"
     assert FakeChatTemplateProcessor.last_call["add_generation_prompt"] is False
-    assert FakeChatTemplateProcessor.last_call["max_length"] == 128
+    assert FakeChatTemplateProcessor.last_call["processor_kwargs"] == {"padding": True}
