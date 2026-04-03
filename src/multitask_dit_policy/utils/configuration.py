@@ -340,6 +340,7 @@ class MultimodalEncoderConfig(draccus.ChoiceRegistry):
     """Base configuration for unified multimodal encoders."""
 
     freeze_backbone: bool = True
+    lr_multiplier: float = 0.1
 
 
 @MultimodalEncoderConfig.register_subclass("pooled")
@@ -356,6 +357,8 @@ class PooledMultimodalEncoderConfig(MultimodalEncoderConfig):
             raise ValueError(f"output_dim must be positive, got {self.output_dim}")
         if self.max_text_length <= 0:
             raise ValueError(f"max_text_length must be positive, got {self.max_text_length}")
+        if self.lr_multiplier <= 0:
+            raise ValueError(f"lr_multiplier must be positive, got {self.lr_multiplier}")
 
 
 @dataclass

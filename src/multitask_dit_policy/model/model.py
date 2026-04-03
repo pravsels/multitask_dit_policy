@@ -113,26 +113,39 @@ class MultiTaskDiTPolicy(nn.Module):
         self.reset()
 
     def get_optim_params(self) -> list:
-        """Returns parameter groups with different learning rates for vision vs non-vision parameters."""
+        """Return parameter groups with reduced LR for backbone encoders."""
         non_vision_params = []
         vision_encoder_params = []
+        multimodal_backbone_params = []
 
         for name, param in self.named_parameters():
             if not param.requires_grad:
                 continue
 
-            if "observation_encoder.vision_encoder" in name:
+            if "observation_encoder.multimodal_encoder.model" in name:
+                multimodal_backbone_params.append(param)
+            elif "observation_encoder.vision_encoder" in name:
                 vision_encoder_params.append(param)
             else:
                 non_vision_params.append(param)
 
-        return [
-            {"params": non_vision_params},
-            {
-                "params": vision_encoder_params,
-                "lr": self.config.optimizer_lr * self.config.observation_encoder.vision.lr_multiplier,
-            },
-        ]
+        optim_groups = [{"params": non_vision_params}]
+        if vision_encoder_params:
+            optim_groups.append(
+                {
+                    "params": vision_encoder_params,
+                    "lr": self.config.optimizer_lr * self.config.observation_encoder.vision.lr_multiplier,
+                }
+            )
+        if multimodal_backbone_params:
+            optim_groups.append(
+                {
+                    "params": multimodal_backbone_params,
+                    "lr": self.config.optimizer_lr * self.config.observation_encoder.multimodal.lr_multiplier,
+                }
+            )
+
+        return optim_groups
 
     def _generate_actions(self, batch: dict[str, Tensor]) -> Tensor:
         batch_size, n_obs_steps = batch["observation.state"].shape[:2]

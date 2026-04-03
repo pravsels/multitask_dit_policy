@@ -1,0 +1,41 @@
+dataset_path: villekuosmanen/bin_pick_pack_coffee_capsules
+run_name: coffee_capsules_qwen_pooled_v1
+
+batch_size: 64
+num_workers: 8
+train_steps: 50000
+save_freq: 5000
+log_freq: 100
+use_amp: true
+lr_scheduler: cosine
+lr_warmup_steps: 500
+lr_scheduler_min_lr_scale: 0.1
+
+policy:
+  n_obs_steps: 2
+  horizon: 100
+  n_action_steps: 50
+  drop_n_last_frames: 0
+  do_mask_loss_for_padding: true
+  optimizer_lr: 2.0e-5
+  objective:
+    type: diffusion
+    noise_scheduler_type: DDIM
+    num_train_timesteps: 100
+    beta_schedule: squaredcos_cap_v2
+    beta_start: 0.0001
+    beta_end: 0.02
+    prediction_type: epsilon
+    clip_sample: true
+    clip_sample_range: 1.0
+    num_inference_steps: 20
+  transformer:
+    use_rope: true
+  observation_encoder:
+    multimodal:
+      type: pooled
+      model: Qwen/Qwen3-VL-4B-Instruct
+      output_dim: 2048
+      max_text_length: 200
+      freeze_backbone: false
+      lr_multiplier: 0.1
