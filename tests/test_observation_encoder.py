@@ -101,6 +101,8 @@ class FakeChatTemplateProcessor:
             "return_tensors": return_tensors,
             "processor_kwargs": processor_kwargs,
         }
+        if not isinstance(messages[0], list):
+            raise AssertionError("Qwen multimodal path should pass batched conversations to apply_chat_template")
         batch_size = len(messages)
         return {
             "input_ids": torch.ones((batch_size, 4), dtype=torch.long),
@@ -283,10 +285,10 @@ def test_pooled_multimodal_encoder_uses_chat_template_for_qwen_processors(monkey
     messages = FakeChatTemplateProcessor.last_call["messages"]
     assert features.shape == (2, 2, 5)
     assert len(messages) == 4
-    assert messages[0]["role"] == "user"
-    assert [item["type"] for item in messages[0]["content"]] == ["image", "image", "text"]
-    assert messages[0]["content"][-1]["text"] == "pick"
-    assert messages[-1]["content"][-1]["text"] == "place"
+    assert messages[0][0]["role"] == "user"
+    assert [item["type"] for item in messages[0][0]["content"]] == ["image", "image", "text"]
+    assert messages[0][0]["content"][-1]["text"] == "pick"
+    assert messages[-1][0]["content"][-1]["text"] == "place"
     assert FakeChatTemplateProcessor.last_call["add_generation_prompt"] is False
     assert FakeChatTemplateProcessor.last_call["processor_kwargs"] == {"padding": True}
 

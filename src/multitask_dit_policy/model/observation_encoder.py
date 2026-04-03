@@ -290,12 +290,12 @@ class PooledHuggingFaceMultimodalEncoder(nn.Module, BaseMultimodalEncoder):
             for sample_images in images_cpu
         ]
 
-    def _build_chat_template_messages(self, text: list[str], images: list[list]) -> list[dict]:
+    def _build_chat_template_messages(self, text: list[str], images: list[list]) -> list[list[dict]]:
         messages = []
         for sample_text, sample_images in zip(text, images, strict=True):
             content = [{"type": "image", "image": image} for image in sample_images]
             content.append({"type": "text", "text": sample_text})
-            messages.append({"role": "user", "content": content})
+            messages.append([{"role": "user", "content": content}])
         return messages
 
     def _prepare_processor_inputs(self, text: list[str], images: list[list]) -> dict:
