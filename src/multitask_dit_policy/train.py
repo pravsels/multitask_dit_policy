@@ -28,6 +28,7 @@ import os
 import random
 import warnings
 from dataclasses import asdict, dataclass, field
+from datetime import timedelta
 from pathlib import Path
 
 import numpy as np
@@ -153,7 +154,7 @@ def setup_distributed(runtime_context: RuntimeContext) -> None:
 
     if runtime_context.use_ddp and not dist.is_initialized():
         backend = "nccl" if torch.cuda.is_available() else "gloo"
-        dist.init_process_group(backend=backend, init_method="env://")
+        dist.init_process_group(backend=backend, init_method="env://", timeout=timedelta(minutes=30))
 
 
 def cleanup_distributed() -> None:
@@ -530,6 +531,8 @@ def train(cfg: TrainConfig):
                     "scaler": scaler.state_dict(),
                 }, save_path / "train_state.pt")
                 logging.info(f"Saved checkpoint to {save_path}")
+            if runtime_context.use_ddp and step % cfg.save_freq == 0:
+                dist.barrier()
 
             progress_bar.update(1)
             progress_bar.set_postfix(loss=loss.item())
@@ -557,6 +560,8 @@ def train(cfg: TrainConfig):
             logging.info("Training finished.")
             if use_wandb:
                 wandb.finish()
+        if runtime_context.use_ddp:
+            dist.barrier()
     finally:
         cleanup_distributed()
 
