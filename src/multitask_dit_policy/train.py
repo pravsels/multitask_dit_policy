@@ -463,7 +463,8 @@ def train(cfg: TrainConfig):
                 train_state = torch.load(train_state_path, map_location=runtime_context.device, weights_only=True)
                 step = train_state["step"]
                 optimizer.load_state_dict(train_state["optimizer"])
-                scaler.load_state_dict(train_state["scaler"])
+                if use_grad_scaler and train_state.get("scaler"):
+                    scaler.load_state_dict(train_state["scaler"])
                 if scheduler is not None and train_state.get("scheduler") is not None:
                     scheduler.load_state_dict(train_state["scheduler"])
                 if runtime_context.is_main_process:
