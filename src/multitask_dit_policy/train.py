@@ -460,13 +460,20 @@ def train(cfg: TrainConfig):
         if checkpoint_path is not None:
             train_state_path = Path(checkpoint_path) / "train_state.pt"
             if train_state_path.exists():
-                train_state = torch.load(train_state_path, map_location=runtime_context.device, weights_only=True)
+                # Deserialize to CPU — optimizer state is ~2x model size
+                # (Adam momentum + variance), loading to GPU would briefly
+                # hold two copies and OOM.
+                train_state = torch.load(train_state_path, map_location="cpu", weights_only=True)
                 step = train_state["step"]
+                # load_state_dict copies each tensor to param.device (GPU),
+                # leaving the CPU originals in train_state for cleanup below
                 optimizer.load_state_dict(train_state["optimizer"])
                 if use_grad_scaler and train_state.get("scaler"):
                     scaler.load_state_dict(train_state["scaler"])
                 if scheduler is not None and train_state.get("scheduler") is not None:
                     scheduler.load_state_dict(train_state["scheduler"])
+                # Free the CPU copies now that optimizer holds GPU state
+                del train_state
                 if runtime_context.is_main_process:
                     logging.info(f"Resumed training state from step {step}")
             elif runtime_context.is_main_process:
