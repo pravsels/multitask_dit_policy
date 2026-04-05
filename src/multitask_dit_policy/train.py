@@ -131,7 +131,7 @@ def get_runtime_context(configured_device: str) -> RuntimeContext:
     use_ddp = world_size > 1
 
     if torch.cuda.is_available() and configured_device.startswith("cuda"):
-        device = f"cuda:{local_rank}" if use_ddp else configured_device
+        device = f"cuda:{local_rank}" if use_ddp else f"cuda:{local_rank}"
         autocast_device_type = "cuda"
     else:
         device = configured_device
