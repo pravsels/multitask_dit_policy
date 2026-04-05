@@ -21,11 +21,13 @@
 - `4bbafcb` `add single-node ddp training support`
 - `142bd48` `fix ddp checkpoint save nccl timeout`
 - `90244f7` `fix grad scaler resume for disabled scaler (bf16)`
+- `70ed076` `fix OOM on checkpoint resume by deserializing optimizer state to CPU`
 
 ## Jobs
 - long run: `3605472` (FAILED — NCCL timeout at step 20000)
 - resume attempt 1: `3617900` (FAILED — GradScaler resume crash)
-- resume attempt 2: `3619886`
+- resume attempt 2: `3619886` (FAILED — OOM on first forward pass after resume)
+- resume attempt 3: `3633130`
 
 ## Status
 - 2026-04-03 14:07 UTC — submitted DDP run `3605472` with pre-seeded `ramen_stats.pt`
@@ -39,9 +41,12 @@
 - 2026-04-04 — job `3617900` FAILED immediately: `GradScaler.load_state_dict` rejected empty state dict saved by disabled scaler (bf16 AMP uses no grad scaling)
 - 2026-04-04 — fix: skip scaler state restore when grad scaling is disabled (`90244f7`)
 - 2026-04-04 — submitted resume run `3619886`
+- 2026-04-05 — job `3619886` FAILED: OOM on all 4 GPUs during first forward pass. `torch.load(map_location=device)` put ~18.6GB optimizer state on GPU, then `load_state_dict` created a second GPU copy internally — double copy exceeded 95GB.
+- 2026-04-05 — fix: deserialize train state to CPU; `load_state_dict` handles CPU→GPU transfer internally (`70ed076`)
+- 2026-04-05 — submitted resume run `3633130`
 
 ## Current Long-Run State
-- job `3619886` state: `PENDING`
+- job `3633130` state: `PENDING`
 - output dir: `/scratch/u6cr/pravsels.u6cr/multitask_dit_policy/outputs/coffee_capsules_qwen_pooled_ddp_v1`
 - resuming from: `checkpoint_15000`
 - currently present artifacts:
