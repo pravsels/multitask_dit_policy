@@ -257,6 +257,14 @@ class PooledHuggingFaceMultimodalEncoder(nn.Module, BaseMultimodalEncoder):
             for param in self.model.parameters():
                 param.requires_grad = False
 
+        # Normally all 40 layers' activations stay in VRAM for backward.
+        # With gradient checkpointing, only keep every Nth layer (e.g. 1, 10,
+        # 20, 30). When backward needs layer 15's input, re-run forward from
+        # layer 10 → 11 → ... → 15 to regenerate it, then free again. Holds
+        # ~10 layers of activations instead of 40. ~20-30% slower, much less VRAM.
+        if getattr(config, "gradient_checkpointing", False):
+            self.model.gradient_checkpointing_enable()
+
         hidden_size = self._get_hidden_size()
         self.projection = nn.Linear(hidden_size, self.output_dim)
 

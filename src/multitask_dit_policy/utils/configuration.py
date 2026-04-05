@@ -341,6 +341,7 @@ class MultimodalEncoderConfig(draccus.ChoiceRegistry):
 
     freeze_backbone: bool = True
     lr_multiplier: float = 0.1
+    gradient_checkpointing: bool = False
 
 
 @MultimodalEncoderConfig.register_subclass("pooled")

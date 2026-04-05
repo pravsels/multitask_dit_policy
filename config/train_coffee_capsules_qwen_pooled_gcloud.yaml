@@ -39,3 +39,4 @@ policy:
       max_text_length: 200
       freeze_backbone: false
       lr_multiplier: 0.1
+      gradient_checkpointing: true
