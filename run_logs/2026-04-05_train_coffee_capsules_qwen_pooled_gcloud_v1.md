@@ -38,20 +38,58 @@
 - 2026-04-05 — enabled `gradient_checkpointing=true` on multimodal encoder; `batch_size=16` fits comfortably
 - 2026-04-05 — training running stably: VRAM ~47GB (57%), step time ~2.5s/it, loss dropping from ~0.78 → ~0.15 by step 119
 - 2026-04-05 — estimated completion: ~35 hours, cost ~$177 ($5.07/hr on-demand)
+- 2026-04-07 — **training complete**: 50000/50000 steps in 35h17m, final loss 0.00672, step time ~2.54s/it
+- 2026-04-07 — container exited cleanly (exit code 0), VM still running
+- 2026-04-07 — uploaded checkpoints 35k, 45k, 50k (inference-only) to HF `pravsels/multitask-dit-coffee-capsules-qwen-pooled`
+- 2026-04-07 — uploaded model card README to HF repo
+- 2026-04-07 — VM `a100-training` deleted
 
-## Current Long-Run State
-- VM: `a100-training` (`a2-ultragpu-1g`, `us-central1-c`)
-- output dir: `/home/ps/outputs/coffee_capsules_qwen_pooled_gcloud_v1`
-- GPU metrics at step ~119: 47018 MiB VRAM (57%), temp cycling normally, power spikes to 400W
-- currently present artifacts:
-  - `ramen_stats.pt`
-- not yet present at last check:
-  - `checkpoint_5000/`
-  - `final_model/`
+## Results
+- total training time: 35h 17m
+- final loss: 0.00672
+- step time: ~2.54s/it (consistent throughout)
+- W&B: `WANDB_MODE=offline` was set but no `WANDB_API_KEY` — wandb did not initialize, no offline run to sync
+
+## Checkpoints
+All saved to `/home/ps/outputs/coffee_capsules_qwen_pooled_gcloud_v1/coffee_capsules_qwen_pooled_gcloud_v1/`:
+
+| checkpoint | timestamp | loss |
+|---|---|---|
+| `checkpoint_5000/` | Apr 5 23:37 | 0.0151 |
+| `checkpoint_10000/` | Apr 6 03:08 | 0.0148 |
+| `checkpoint_15000/` | Apr 6 06:40 | 0.0134 |
+| `checkpoint_20000/` | Apr 6 10:12 | 0.0176 |
+| `checkpoint_25000/` | Apr 6 13:43 | 0.0107 |
+| `checkpoint_30000/` | Apr 6 17:15 | 0.0109 |
+| `checkpoint_35000/` | Apr 6 20:46 | 0.00816 |
+| `checkpoint_40000/` | Apr 7 00:18 | 0.00974 |
+| `checkpoint_45000/` | Apr 7 03:50 | 0.00727 |
+| `checkpoint_50000/` | Apr 7 07:22 | 0.00672 |
+| `final_model/` | Apr 7 07:23 | — |
+
+`final_model/` contents: `config.json` (2.6K), `model.safetensors` (8.7G), `ramen_stats.pt` (17K), `train_state.pt` (18G)
+
+## HuggingFace Upload
+- repo: [`pravsels/multitask-dit-coffee-capsules-qwen-pooled`](https://huggingface.co/pravsels/multitask-dit-coffee-capsules-qwen-pooled)
+- uploaded: `checkpoint_35000/`, `checkpoint_45000/`, `checkpoint_50000/` (inference-only: `model.safetensors`, `config.json`, `ramen_stats.pt`)
+- checkpoint hashes (sha256 manifest, verified twice):
+
+| checkpoint | sha256 |
+|---|---|
+| `checkpoint_35000` | `365922a3e53e7f0a6c7bb36356eeb43373dac5b5993f1f2efe66a047c5e1002f` |
+| `checkpoint_45000` | `3771f8e6fdf7810988fde0f44d9c6132db1bc187fc7fbc8ed07c9c6b57621c58` |
+| `checkpoint_50000` | `e218da1ee6fdd6d15d44d0244356b9836700eae50683028a60b220e4ed12b737` |
+
+Reproduce with: `find <ckpt_dir> -type f \( -name "model.safetensors" -o -name "config.json" -o -name "ramen_stats.pt" \) | sort | xargs sha256sum | sha256sum`
+
+## VM State
+- VM `a100-training` **deleted** 2026-04-07
+- GCloud project: `gen-lang-client-0388971498`
 
 ## Notes
 - Originally planned 4× A100 DDP on GCloud, but `a2-ultragpu-4g` was unavailable due to capacity limits. Fell back to single-GPU `a2-ultragpu-1g`.
 - `batch_size=32` OOM'd even though the Isambard GH200 ran `batch_size=64` at 92GB — the A100 has only 81GB and different memory characteristics.
 - Gradient checkpointing cut VRAM from ~80GB (OOM) to ~47GB at `batch_size=16`, at the cost of ~20-30% slower step time. Only the Qwen backbone layers are checkpointed; re-forward computes ~10 layers at a time instead of caching all 40.
-- Training log is written to `/home/ps/outputs/coffee_capsules_qwen_pooled_gcloud_v1/train.log` on the VM via `tee`.
-- VM must be deleted after training completes to stop billing.
+- Training log at `/home/ps/outputs/coffee_capsules_qwen_pooled_gcloud_v1/coffee_capsules_qwen_pooled_gcloud_v1/train.log` (8MB, mostly progress bar output with loss values).
+- W&B was not functional — `WANDB_MODE=offline` without `WANDB_API_KEY` means wandb never initialized. No offline run directory exists to sync.
+- VM deleted after uploading checkpoints to HuggingFace.
