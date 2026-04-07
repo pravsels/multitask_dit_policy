@@ -21,7 +21,9 @@ Supports both diffusion and flow matching objectives for action generation.
 """
 
 from collections import deque
+import logging
 from pathlib import Path
+import time
 
 import draccus
 import torch
@@ -38,6 +40,8 @@ from multitask_dit_policy.model.observation_encoder import ObservationEncoder
 from multitask_dit_policy.model.transformer import DiffusionTransformer
 from multitask_dit_policy.utils.configuration import MultiTaskDiTConfig
 from multitask_dit_policy.utils.utils import populate_queues
+
+log = logging.getLogger(__name__)
 
 
 class MultiTaskDiTPolicy(nn.Module):
@@ -241,6 +245,7 @@ class MultiTaskDiTPolicy(nn.Module):
     @staticmethod
     def load(checkpoint_path: str | Path):
         path = Path(checkpoint_path)
+        load_start = time.perf_counter()
 
         # Load config from JSON using draccus
         config_file = path / "config.json"
@@ -253,12 +258,17 @@ class MultiTaskDiTPolicy(nn.Module):
 
         # Checkpoint loading should restore encoder weights from safetensors
         # rather than pulling the upstream pretrained backbones first.
+        construct_start = time.perf_counter()
         model = MultiTaskDiTPolicy(config, load_pretrained_backbones=False)
+        log.info("Constructed policy modules in %.2fs", time.perf_counter() - construct_start)
 
         # Load model weights from safetensors (matching lerobot convention)
         model_file = path / "model.safetensors"
         if not model_file.exists():
             raise FileNotFoundError(f"model.safetensors not found in {path}")
 
+        safetensors_start = time.perf_counter()
         load_model_as_safetensor(model, str(model_file))
+        log.info("Loaded safetensors weights in %.2fs", time.perf_counter() - safetensors_start)
+        log.info("Finished MultiTaskDiTPolicy.load in %.2fs", time.perf_counter() - load_start)
         return model
