@@ -10,12 +10,11 @@ Reference: Ramen paper normalization procedure.
 import logging
 from pathlib import Path
 
+import numpy as np
 import torch
 from torch import Tensor
-from tqdm import tqdm
-
-from multitask_dit_policy.utils.configuration import DatasetSchema
-from multitask_dit_policy.utils.dataset_adapter import assemble_vector
+from multitask_dit_policy.utils.configuration import DatasetSchema, SchemaEntry
+from multitask_dit_policy.utils.rotation import convert_eef_pose
 
 # Keys that receive ImageNet MEAN_STD normalization (unchanged from before)
 _IMAGENET_MEAN = torch.tensor([0.485, 0.456, 0.406])
@@ -77,29 +76,45 @@ def ramen_unnormalize(y: Tensor, q02: Tensor, q98: Tensor, norm_mask: Tensor) ->
     return x
 
 
-def _transform_sample(
-    sample: dict,
-    schema: DatasetSchema,
-    norm_mask: Tensor,
-) -> tuple[Tensor, Tensor]:
-    """Transform a single dataset sample into (obs, delta_action).
+def _bulk_read_columns(
+    dataset,
+    keys: list[str],
+) -> dict[str, Tensor]:
+    """Read numerical columns directly from parquet via hf_dataset, skipping video decoding.
 
-    Assembles state/action from schema entries (with RPY->6D where declared),
-    then computes delta actions on the shared dim prefix.
+    Supports both single-dataset (LeRobotDataset) and multi-dataset
+    (WrappedRobotDataset with _datasets list) wrappers.
     """
-    obs = assemble_vector(sample, schema.state, pop=False)
-    act = assemble_vector(sample, schema.action, pop=False)
+    inner_datasets = getattr(dataset, "_datasets", [dataset])
 
-    if obs is None or act is None:
-        raise ValueError("Schema entries produced no tensors from sample")
+    per_key: dict[str, list[Tensor]] = {k: [] for k in keys}
+    for ds in inner_datasets:
+        hf = ds.hf_dataset
+        available = set(hf.column_names)
+        cols_to_read = [k for k in keys if k in available]
+        if not cols_to_read:
+            continue
+        subset = hf.select_columns(cols_to_read)
+        for k in cols_to_read:
+            per_key[k].append(torch.tensor(np.array(subset[k]), dtype=torch.float32))
 
-    shared = min(obs.shape[-1], act.shape[-1])
-    current_obs = obs[-1:]
-    delta_act = act.clone()
-    m = norm_mask[:shared]
-    delta_act[..., :shared][..., m] = act[..., :shared][..., m] - current_obs[..., :shared][..., m]
+    return {k: torch.cat(v, dim=0) for k, v in per_key.items() if v}
 
-    return obs, delta_act
+
+def _assemble_bulk(
+    data: dict[str, Tensor],
+    entries: list[SchemaEntry],
+) -> Tensor:
+    """Assemble a feature vector from bulk-read columns, applying RPY->rot6d."""
+    parts: list[Tensor] = []
+    for entry in entries:
+        val = data.get(entry.key)
+        if val is None:
+            continue
+        if entry.convert_rotation:
+            val = convert_eef_pose(val)
+        parts.append(val)
+    return torch.cat(parts, dim=-1)
 
 
 def compute_ramen_stats(
@@ -111,9 +126,10 @@ def compute_ramen_stats(
 ) -> dict[str, Tensor]:
     """Compute per-timestep q02/q98 stats for Ramen normalization.
 
-    Iterates the full dataset, transforms each sample using the schema
-    (assemble + RPY->6D + delta), and computes 2nd/98th percentile
-    per dimension per timestep.
+    Reads numerical columns directly from the underlying parquet files
+    (via hf_dataset), completely bypassing video decoding.  This is
+    orders of magnitude faster than iterating dataset[i] which decodes
+    a video frame per sample.
 
     Results are cached to ``cache_path`` if provided.
 
@@ -126,25 +142,37 @@ def compute_ramen_stats(
         logging.info(f"Loading cached Ramen stats from {cache_path}")
         return torch.load(cache_path, map_location=device, weights_only=True)
 
-    logging.info(f"Computing Ramen stats over {len(dataset)} samples...")
+    all_keys = list({e.key for e in schema.state + schema.action})
+    n_frames = len(dataset)
+    logging.info(
+        f"Computing Ramen stats — bulk-reading {n_frames} frames, "
+        f"columns: {all_keys}"
+    )
 
-    all_obs = []
-    all_delta_actions = []
+    data = _bulk_read_columns(dataset, all_keys)
+    logging.info("Columns loaded, assembling vectors + RPY→rot6d...")
 
-    for i in tqdm(range(len(dataset)), desc="Ramen stats"):
-        sample = dataset[i]
-        obs, delta_act = _transform_sample(sample, schema, norm_mask)
-        all_obs.append(obs)
-        all_delta_actions.append(delta_act)
+    all_obs = _assemble_bulk(data, schema.state)          # (N, state_dim)
+    all_act = _assemble_bulk(data, schema.action)         # (N, action_dim)
 
-    all_obs = torch.stack(all_obs)            # (N, n_obs, 17)
-    all_delta_actions = torch.stack(all_delta_actions)  # (N, horizon, 17)
+    # Delta actions on shared prefix
+    shared = min(all_obs.shape[-1], all_act.shape[-1])
+    m = norm_mask[:shared]
+    all_delta = all_act.clone()
+    all_delta[..., :shared][..., m] = (
+        all_act[..., :shared][..., m] - all_obs[..., :shared][..., m]
+    )
 
+    # Unsqueeze T=1 dim to match per-timestep convention (N, 1, D)
+    all_obs = all_obs.unsqueeze(1)
+    all_delta = all_delta.unsqueeze(1)
+
+    logging.info("Computing percentiles...")
     stats = {
         "obs_q02": torch.quantile(all_obs.float(), 0.02, dim=0),
         "obs_q98": torch.quantile(all_obs.float(), 0.98, dim=0),
-        "action_q02": torch.quantile(all_delta_actions.float(), 0.02, dim=0),
-        "action_q98": torch.quantile(all_delta_actions.float(), 0.98, dim=0),
+        "action_q02": torch.quantile(all_delta.float(), 0.02, dim=0),
+        "action_q98": torch.quantile(all_delta.float(), 0.98, dim=0),
         "norm_mask": norm_mask,
     }
 

@@ -362,7 +362,9 @@ def train(cfg: TrainConfig):
         policy.to(runtime_context.device)
         policy.train()
 
-        # Compute Ramen per-timestep percentile stats (cached to disk)
+        # Compute Ramen per-timestep percentile stats (cached to disk).
+        # Stats are computed by bulk-reading numerical columns directly from
+        # the underlying parquet files, bypassing video decoding entirely.
         stats_cache = run_dir / "ramen_stats.pt"
         ramen_stats = load_or_compute_ramen_stats(
             dataset=dataset,
