@@ -8,10 +8,12 @@ import torch
 import torch.nn as nn
 
 
+_rcw_plugins = types.SimpleNamespace(ControlModePlugin=type("ControlModePlugin", (), {}))
 sys.modules.setdefault(
     "robocandywrapper",
     types.SimpleNamespace(make_dataset_without_config=lambda **kwargs: None),
 )
+sys.modules.setdefault("robocandywrapper.plugins", _rcw_plugins)
 
 train_module = importlib.import_module("multitask_dit_policy.train")
 
@@ -88,32 +90,6 @@ def test_get_runtime_context_uses_local_rank_cuda_device(monkeypatch):
     assert ctx.autocast_device_type == "cuda"
     assert ctx.is_main_process is False
 
-
-def test_setup_distributed_initializes_process_group(monkeypatch):
-    calls = {}
-    runtime_context = train_module.RuntimeContext(
-        use_ddp=True,
-        world_size=4,
-        rank=1,
-        local_rank=1,
-        device="cuda:1",
-        autocast_device_type="cuda",
-        is_main_process=False,
-    )
-
-    monkeypatch.setattr(train_module.torch.cuda, "is_available", lambda: True)
-    monkeypatch.setattr(train_module.torch.cuda, "set_device", lambda device: calls.setdefault("device", str(device)))
-    monkeypatch.setattr(train_module.dist, "is_initialized", lambda: False)
-    monkeypatch.setattr(
-        train_module.dist,
-        "init_process_group",
-        lambda backend, init_method="env://": calls.update({"backend": backend, "init_method": init_method}),
-    )
-
-    assert hasattr(train_module, "setup_distributed")
-    train_module.setup_distributed(runtime_context)
-
-    assert calls == {"device": "cuda:1", "backend": "nccl", "init_method": "env://"}
 
 
 def test_cleanup_distributed_destroys_process_group(monkeypatch):

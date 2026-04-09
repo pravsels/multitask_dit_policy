@@ -39,6 +39,7 @@ from lerobot.datasets.lerobot_dataset import LeRobotDatasetMetadata
 from lerobot.datasets.sampler import EpisodeAwareSampler
 from lerobot.datasets.utils import cycle
 from robocandywrapper import make_dataset_without_config
+from robocandywrapper.plugins import ControlModePlugin
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -55,6 +56,11 @@ from multitask_dit_policy.utils.dataset_adapter import (
     select_default_keys,
 )
 from multitask_dit_policy.utils.distributed_sampler import DistributedIndexSampler
+from multitask_dit_policy.utils.valid_indices import (
+    VALID_INDICES_FILENAME,
+    compute_valid_indices,
+    write_filtering_report,
+)
 from multitask_dit_policy.utils.ramen_normalization import (
     build_norm_mask,
     compute_ramen_stats,
@@ -375,6 +381,7 @@ def train(cfg: TrainConfig):
             root=root,
             video_backend="pyav",
             use_imagenet_stats=True,
+            plugins=[ControlModePlugin()],
         )
 
         # Compute Ramen per-timestep percentile stats (cached to disk)
@@ -390,30 +397,40 @@ def train(cfg: TrainConfig):
         )
         norm_mask = norm_mask.to(runtime_context.device)
 
-        if runtime_context.use_ddp:
-            episode_indices = list(
-                EpisodeAwareSampler(
-                    ds_metadata.episodes["dataset_from_index"],
-                    ds_metadata.episodes["dataset_to_index"],
-                    drop_n_last_frames=cfg.policy.drop_n_last_frames,
-                    shuffle=False,
-                )
-            )
-            sampler = DistributedIndexSampler(
-                indices=episode_indices,
-                num_replicas=runtime_context.world_size,
-                rank=runtime_context.rank,
-                shuffle=True,
-                drop_last=False,
-                seed=cfg.seed,
-            )
-        else:
-            sampler = EpisodeAwareSampler(
+        # Materialize episode-aware indices (respects drop_n_last_frames)
+        episode_indices = list(
+            EpisodeAwareSampler(
                 ds_metadata.episodes["dataset_from_index"],
                 ds_metadata.episodes["dataset_to_index"],
                 drop_n_last_frames=cfg.policy.drop_n_last_frames,
-                shuffle=True,
+                shuffle=False,
             )
+        )
+
+        # Filter out autonomous policy frames from DAgger datasets
+        valid_indices, filtering_report = compute_valid_indices(dataset)
+        total_frames = len(dataset)
+        if len(valid_indices) < total_frames:
+            valid_set = set(valid_indices)
+            episode_indices = [i for i in episode_indices if i in valid_set]
+            if runtime_context.is_main_process:
+                logging.info(
+                    "DAgger filtering: keeping %d/%d frames (%.1f%%)",
+                    len(episode_indices), total_frames,
+                    100 * len(episode_indices) / max(total_frames, 1),
+                )
+                write_filtering_report(filtering_report, run_dir / VALID_INDICES_FILENAME)
+        elif runtime_context.is_main_process:
+            logging.info("No DAgger policy frames detected, using all %d frames", total_frames)
+
+        sampler = DistributedIndexSampler(
+            indices=episode_indices,
+            num_replicas=runtime_context.world_size,
+            rank=runtime_context.rank,
+            shuffle=True,
+            drop_last=False,
+            seed=cfg.seed,
+        )
 
         dataloader = DataLoader(
             dataset,

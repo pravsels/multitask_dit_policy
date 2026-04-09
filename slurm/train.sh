@@ -44,7 +44,7 @@ echo "Started (UTC): ${start_time}"
 echo "===================================="
 
 # Experiment config — use REPO_DIR, not SCRIPT_DIR (Slurm copies scripts to spool).
-CONFIG_FILE="${CONFIG_FILE:-${repo_dir}/config/train_coffee_capsules.yaml}"
+CONFIG_FILE="${CONFIG_FILE:-${repo_dir}/config/train_block_tower.yaml}"
 EXTRA_TRAIN_ARGS_B64="${EXTRA_TRAIN_ARGS_B64:-}"
 EXTRA_TRAIN_ARGS=""
 if [ -n "${EXTRA_TRAIN_ARGS_B64}" ]; then
