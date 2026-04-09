@@ -335,8 +335,15 @@ def train(cfg: TrainConfig):
         )
         ds_metadata = dataset.meta
 
-        # Build task_index → task_text lookup for CLIP conditioning
-        task_index_to_text = {row.task_index: task for task, row in ds_metadata.tasks.iterrows()}
+        # Build task_index → task_text lookup for CLIP conditioning.
+        # LeRobotDatasetMetadata.tasks is a pandas DataFrame (single-dataset),
+        # robocandywrapper .meta.tasks is a plain dict (multi-dataset).
+        tasks = ds_metadata.tasks
+        if isinstance(tasks, dict):
+            task_index_to_text = {int(k): str(v) for k, v in tasks.items()}
+        else:
+            task_index_to_text = {row.task_index: task for task, row in tasks.iterrows()}
+        
         if runtime_context.is_main_process:
             logging.info(f"Task descriptions: {task_index_to_text}")
 
