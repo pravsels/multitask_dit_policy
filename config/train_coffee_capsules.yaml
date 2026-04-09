@@ -1,6 +1,21 @@
 dataset_path: villekuosmanen/bin_pick_pack_coffee_capsules
 run_name: coffee_capsules_baseline_v1
 
+dataset_schema:
+  state:
+    - key: observation.state.pos
+      dim: 7
+    - key: observation.state.eef_pose
+      dim: 7
+      convert_rotation: true
+  action:
+    - key: action.pos
+      dim: 7
+    - key: action.eef_pose
+      dim: 7
+      convert_rotation: true
+  rot6d_slice: [10, 16]
+
 batch_size: 64
 num_workers: 8
 train_steps: 50000

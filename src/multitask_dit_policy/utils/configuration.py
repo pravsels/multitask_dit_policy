@@ -23,6 +23,55 @@ from lerobot.utils.constants import ACTION, OBS_STATE
 
 from .utils import NormalizationMode
 
+
+@dataclass
+class SchemaEntry:
+    """A single dataset key and how to process it."""
+
+    key: str
+    dim: int
+    convert_rotation: bool = False
+
+    @property
+    def output_dim(self) -> int:
+        """Dimension after optional RPY-to-rot6d conversion.
+
+        convert_eef_pose splits [xyz(3), rpy(3), ...rest] and expands
+        rpy(3) to rot6d(6), adding 3 dims to the raw size.
+        """
+        if self.convert_rotation:
+            return self.dim + 3
+        return self.dim
+
+
+@dataclass
+class DatasetSchema:
+    """Per-task declaration of dataset key layout.
+
+    Replaces hardcoded DEFAULT_STATE_KEYS / DEFAULT_ACTION_KEYS.
+    State and action dims are computed from entries and may differ.
+    """
+
+    state: list[SchemaEntry] = field(default_factory=list)
+    action: list[SchemaEntry] = field(default_factory=list)
+    rot6d_slice: tuple[int, int] = (10, 16)
+
+    @property
+    def state_keys(self) -> list[str]:
+        return [e.key for e in self.state]
+
+    @property
+    def action_keys(self) -> list[str]:
+        return [e.key for e in self.action]
+
+    @property
+    def state_dim(self) -> int:
+        return sum(e.output_dim for e in self.state)
+
+    @property
+    def action_dim(self) -> int:
+        return sum(e.output_dim for e in self.action)
+
 # Suppress Pydantic warnings from draccus ChoiceRegistry union types
 # This is an interaction with draccus that we can't control
 warnings.filterwarnings("ignore", message=".*Field.*attribute.*repr.*")

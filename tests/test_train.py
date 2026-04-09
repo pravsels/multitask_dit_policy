@@ -131,11 +131,12 @@ def test_load_or_compute_ramen_stats_main_rank_computes_before_barrier(monkeypat
     )
     monkeypatch.setattr(train_module.dist, "barrier", lambda: calls.append("barrier"))
 
+    from multitask_dit_policy.utils.configuration import DatasetSchema
+
     assert hasattr(train_module, "load_or_compute_ramen_stats")
     train_module.load_or_compute_ramen_stats(
         dataset=[],
-        state_keys=["state"],
-        action_keys=["action"],
+        schema=DatasetSchema(),
         norm_mask=torch.ones(1, dtype=torch.bool),
         cache_path=tmp_path / "ramen_stats.pt",
         device="cuda:0",
@@ -164,11 +165,12 @@ def test_load_or_compute_ramen_stats_non_main_rank_waits_for_barrier(monkeypatch
         lambda *args, **kwargs: calls.append("compute") or {"norm_mask": torch.ones(1)},
     )
 
+    from multitask_dit_policy.utils.configuration import DatasetSchema
+
     assert hasattr(train_module, "load_or_compute_ramen_stats")
     train_module.load_or_compute_ramen_stats(
         dataset=[],
-        state_keys=["state"],
-        action_keys=["action"],
+        schema=DatasetSchema(),
         norm_mask=torch.ones(1, dtype=torch.bool),
         cache_path=tmp_path / "ramen_stats.pt",
         device="cuda:1",

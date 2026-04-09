@@ -42,12 +42,8 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from multitask_dit_policy.model.model import MultiTaskDiTPolicy
-from multitask_dit_policy.utils.configuration import MultiTaskDiTConfig
+from multitask_dit_policy.utils.configuration import DatasetSchema, MultiTaskDiTConfig
 from multitask_dit_policy.utils.dataset_adapter import (
-    DEFAULT_ACTION_KEYS,
-    DEFAULT_STATE_KEYS,
-    ROT6D_END,
-    ROT6D_START,
     adapt_batch,
     compute_adapted_features,
 )
@@ -89,9 +85,7 @@ class TrainConfig:
     # Dataset parameters
     dataset_path: str
     run_name: str = "default"
-    state_keys: list[str] = field(default_factory=lambda: list(DEFAULT_STATE_KEYS))
-    action_keys: list[str] = field(default_factory=lambda: list(DEFAULT_ACTION_KEYS))
-    rot6d_slice: tuple[int, int] = (ROT6D_START, ROT6D_END)
+    dataset_schema: DatasetSchema = field(default_factory=DatasetSchema)
 
     # Training parameters
     batch_size: int = 16
@@ -172,44 +166,23 @@ def unwrap_model(model: torch.nn.Module) -> torch.nn.Module:
 def load_or_compute_ramen_stats(
     *,
     dataset,
-    state_keys: list[str],
-    action_keys: list[str],
+    schema: DatasetSchema,
     norm_mask: torch.Tensor,
     cache_path: str | Path | None,
     device: str,
     runtime_context: RuntimeContext,
 ) -> dict[str, torch.Tensor]:
+    kwargs = dict(schema=schema, norm_mask=norm_mask, cache_path=cache_path, device=device)
     if not runtime_context.use_ddp:
-        return compute_ramen_stats(
-            dataset,
-            state_keys=state_keys,
-            action_keys=action_keys,
-            norm_mask=norm_mask,
-            cache_path=cache_path,
-            device=device,
-        )
+        return compute_ramen_stats(dataset, **kwargs)
 
     if runtime_context.is_main_process:
-        stats = compute_ramen_stats(
-            dataset,
-            state_keys=state_keys,
-            action_keys=action_keys,
-            norm_mask=norm_mask,
-            cache_path=cache_path,
-            device=device,
-        )
+        stats = compute_ramen_stats(dataset, **kwargs)
         dist.barrier()
         return stats
 
     dist.barrier()
-    return compute_ramen_stats(
-        dataset,
-        state_keys=state_keys,
-        action_keys=action_keys,
-        norm_mask=norm_mask,
-        cache_path=cache_path,
-        device=device,
-    )
+    return compute_ramen_stats(dataset, **kwargs)
 
 
 def compute_lr_scale(
@@ -347,22 +320,21 @@ def train(cfg: TrainConfig):
         if runtime_context.is_main_process:
             logging.info(f"Task descriptions: {task_index_to_text}")
 
-        # State/action keys from config (defaults to pos + eef_pose).
-        # No auto-detection needed — keys are explicit in config/defaults.
-        state_keys = cfg.state_keys
-        action_keys = cfg.action_keys
+        schema = cfg.dataset_schema
         if runtime_context.is_main_process:
-            logging.info(f"Sub-feature keys — state: {state_keys}, action: {action_keys}")
+            logging.info(
+                f"Dataset schema — state keys: {schema.state_keys} ({schema.state_dim}D), "
+                f"action keys: {schema.action_keys} ({schema.action_dim}D)"
+            )
 
-        # Build features and norm mask. compute_adapted_features uses
-        # ds_meta.features for image discovery and falls back to known
-        # dimensions for sub-feature keys (pos/eef_pose).
-        rot6d_start, rot6d_end = cfg.rot6d_slice
+        # Build features and norm mask.
+        rot6d_start, rot6d_end = schema.rot6d_slice
         input_features, output_features = compute_adapted_features(
-            ds_meta.features, state_keys, action_keys,
+            ds_meta.features, schema,
         )
-        state_dim = input_features["observation.state"].shape[0]
-        norm_mask = build_norm_mask(state_dim, rot6d_start, rot6d_end)
+        norm_mask = build_norm_mask(
+            max(schema.state_dim, schema.action_dim), rot6d_start, rot6d_end,
+        )
 
         cfg.policy.input_features = input_features
         cfg.policy.output_features = output_features
@@ -394,8 +366,7 @@ def train(cfg: TrainConfig):
         stats_cache = run_dir / "ramen_stats.pt"
         ramen_stats = load_or_compute_ramen_stats(
             dataset=dataset,
-            state_keys=state_keys,
-            action_keys=action_keys,
+            schema=schema,
             norm_mask=norm_mask,
             cache_path=stats_cache,
             device=runtime_context.device,
@@ -510,7 +481,7 @@ def train(cfg: TrainConfig):
                 batch = next(dataloader_iter)
 
             batch = move_to_device(batch, runtime_context.device, non_blocking=True)
-            batch = adapt_batch(batch, state_keys, action_keys, norm_mask)
+            batch = adapt_batch(batch, schema, norm_mask)
 
             # Ensure task text exists for CLIP conditioning
             if "task" not in batch and "task_index" in batch:

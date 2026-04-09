@@ -8,6 +8,21 @@ dataset_path: >-
   
 run_name: block_tower_baseline_v1
 
+dataset_schema:
+  state:
+    - key: observation.state
+      dim: 7
+    - key: observation.eef_6d_pose
+      dim: 6
+      convert_rotation: true
+  action:
+    - key: action
+      dim: 7
+    - key: action.eef_pose
+      dim: 7
+      convert_rotation: true
+  rot6d_slice: [10, 16]
+
 batch_size: 64
 num_workers: 8
 train_steps: 50000

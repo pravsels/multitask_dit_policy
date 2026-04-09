@@ -14,7 +14,8 @@ import torch
 from torch import Tensor
 from tqdm import tqdm
 
-from multitask_dit_policy.utils.rotation import convert_eef_pose
+from multitask_dit_policy.utils.configuration import DatasetSchema
+from multitask_dit_policy.utils.dataset_adapter import assemble_vector
 
 # Keys that receive ImageNet MEAN_STD normalization (unchanged from before)
 _IMAGENET_MEAN = torch.tensor([0.485, 0.456, 0.406])
@@ -78,53 +79,47 @@ def ramen_unnormalize(y: Tensor, q02: Tensor, q98: Tensor, norm_mask: Tensor) ->
 
 def _transform_sample(
     sample: dict,
-    state_keys: list[str],
-    action_keys: list[str],
+    schema: DatasetSchema,
     norm_mask: Tensor,
 ) -> tuple[Tensor, Tensor]:
-    """Transform a single dataset sample into (obs_17d, delta_action_17d).
+    """Transform a single dataset sample into (obs, delta_action).
 
-    Selects pos + eef_pose, converts RPY -> 6D, computes delta actions
-    (skipping 6D rotation dims).
+    Assembles state/action from schema entries (with RPY->6D where declared),
+    then computes delta actions on the shared dim prefix.
     """
-    obs_pos = sample[state_keys[0]]   # (n_obs, 7)
-    obs_eef = sample[state_keys[1]]   # (n_obs, 7)
-    act_pos = sample[action_keys[0]]  # (horizon, 7)
-    act_eef = sample[action_keys[1]]  # (horizon, 7)
+    obs = assemble_vector(sample, schema.state, pop=False)
+    act = assemble_vector(sample, schema.action, pop=False)
 
-    obs_eef_10 = convert_eef_pose(obs_eef)   # (n_obs, 10)
-    act_eef_10 = convert_eef_pose(act_eef)   # (horizon, 10)
+    if obs is None or act is None:
+        raise ValueError("Schema entries produced no tensors from sample")
 
-    obs = torch.cat([obs_pos, obs_eef_10], dim=-1)  # (n_obs, 17)
-    act = torch.cat([act_pos, act_eef_10], dim=-1)  # (horizon, 17)
-
-    # Delta action: subtract current observation, except 6D rotation dims
-    current_obs = obs[-1:]  # (1, 17)
+    shared = min(obs.shape[-1], act.shape[-1])
+    current_obs = obs[-1:]
     delta_act = act.clone()
-    delta_act[..., norm_mask] = act[..., norm_mask] - current_obs[..., norm_mask]
+    m = norm_mask[:shared]
+    delta_act[..., :shared][..., m] = act[..., :shared][..., m] - current_obs[..., :shared][..., m]
 
     return obs, delta_act
 
 
 def compute_ramen_stats(
     dataset,
-    state_keys: list[str],
-    action_keys: list[str],
+    schema: DatasetSchema,
     norm_mask: Tensor,
     cache_path: str | Path | None = None,
     device: str = "cpu",
 ) -> dict[str, Tensor]:
     """Compute per-timestep q02/q98 stats for Ramen normalization.
 
-    Iterates the full dataset, transforms each sample (select pos+eef_pose,
-    convert RPY -> 6D, compute delta actions), and computes 2nd/98th percentile
+    Iterates the full dataset, transforms each sample using the schema
+    (assemble + RPY->6D + delta), and computes 2nd/98th percentile
     per dimension per timestep.
 
     Results are cached to ``cache_path`` if provided.
 
     Returns:
         Dict with keys obs_q02, obs_q98, action_q02, action_q98,
-        each of shape (T, 17), and norm_mask (17,).
+        each of shape (T, D), and norm_mask.
     """
     cache_path = Path(cache_path) if cache_path else None
     if cache_path and cache_path.exists():
@@ -138,7 +133,7 @@ def compute_ramen_stats(
 
     for i in tqdm(range(len(dataset)), desc="Ramen stats"):
         sample = dataset[i]
-        obs, delta_act = _transform_sample(sample, state_keys, action_keys, norm_mask)
+        obs, delta_act = _transform_sample(sample, schema, norm_mask)
         all_obs.append(obs)
         all_delta_actions.append(delta_act)
 
@@ -171,22 +166,26 @@ def ramen_normalize_batch(
     - observation.state and action: Ramen percentile normalization (6D rot exempt)
     - observation.images.*: ImageNet MEAN_STD normalization
     - Other keys (task, metadata): passed through unchanged
+
+    norm_mask is sliced to match state_dim / action_dim automatically
+    (they may differ).
     """
     normalized = {}
 
     for key, val in batch.items():
         if key == "observation.state":
+            m = norm_mask[: val.shape[-1]]
             normalized[key] = ramen_normalize(
-                val, ramen_stats["obs_q02"], ramen_stats["obs_q98"], norm_mask,
+                val, ramen_stats["obs_q02"], ramen_stats["obs_q98"], m,
             )
         elif key == "action":
+            m = norm_mask[: val.shape[-1]]
             normalized[key] = ramen_normalize(
-                val, ramen_stats["action_q02"], ramen_stats["action_q98"], norm_mask,
+                val, ramen_stats["action_q02"], ramen_stats["action_q98"], m,
             )
         elif key.startswith("observation.image") and isinstance(val, Tensor) and val.is_floating_point():
             mean = _IMAGENET_MEAN.to(val.device, val.dtype)
             std = _IMAGENET_STD.to(val.device, val.dtype)
-            # val is (..., C, H, W) — reshape mean/std to broadcast
             shape = [1] * (val.ndim - 3) + [3, 1, 1]
             normalized[key] = (val - mean.view(*shape)) / std.view(*shape)
         else:
