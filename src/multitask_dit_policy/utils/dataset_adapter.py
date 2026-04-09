@@ -24,6 +24,16 @@ EEF_CONVERTED_DIM = 10  # eef_pose 7D -> 10D after RPY->6D
 ROT6D_START = 10  # index in the 17D vector where 6D rotation starts
 ROT6D_END = 16    # index where 6D rotation ends (exclusive)
 
+# Raw dimensions for known sub-feature keys, used as fallback when the
+# features dict doesn't contain granular sub-feature entries (e.g. when
+# using robocandywrapper's combined .meta.features for multi-datasets).
+KNOWN_RAW_DIMS: dict[str, int] = {
+    "observation.state.pos": 7,
+    "observation.state.eef_pose": 7,
+    "action.pos": 7,
+    "action.eef_pose": 7,
+}
+
 
 def detect_sub_features(features: dict) -> tuple[list[str], list[str]]:
     """Auto-detect state and action sub-feature keys from dataset metadata.
@@ -96,11 +106,23 @@ def compute_adapted_features(
     return input_features, output_features
 
 
-def _compute_total_dim(features: dict, keys: list[str]) -> int:
-    """Sum dimensions, accounting for RPY->6D expansion on eef_pose keys."""
+def _compute_total_dim(features: dict | None, keys: list[str]) -> int:
+    """Sum dimensions, accounting for RPY->6D expansion on eef_pose keys.
+
+    Falls back to KNOWN_RAW_DIMS when the features dict doesn't contain
+    granular sub-feature entries (multi-dataset combined metadata).
+    """
     total = 0
     for k in keys:
-        raw_dim = features[k]["shape"][0]
+        if features and k in features:
+            raw_dim = features[k]["shape"][0]
+        elif k in KNOWN_RAW_DIMS:
+            raw_dim = KNOWN_RAW_DIMS[k]
+        else:
+            raise KeyError(
+                f"Unknown sub-feature {k!r}: not in metadata and no known dimension. "
+                f"Add it to KNOWN_RAW_DIMS or pass a features dict that contains it."
+            )
         if k.endswith(".eef_pose"):
             total += EEF_CONVERTED_DIM  # 7 -> 10 after RPY->6D
         else:

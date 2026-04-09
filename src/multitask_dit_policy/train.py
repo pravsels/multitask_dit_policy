@@ -50,8 +50,6 @@ from multitask_dit_policy.utils.dataset_adapter import (
     ROT6D_START,
     adapt_batch,
     compute_adapted_features,
-    detect_sub_features,
-    select_default_keys,
 )
 from multitask_dit_policy.utils.distributed_sampler import DistributedIndexSampler
 from multitask_dit_policy.utils.valid_indices import (
@@ -322,8 +320,8 @@ def train(cfg: TrainConfig):
             repo_id = cfg.dataset_path
             root = None
 
-        # Create dataset first — robocandywrapper handles multi-dataset
-        # configs ("[repo1, repo2, ...]") and provides combined metadata.
+        # Create dataset — robocandywrapper handles multi-dataset configs
+        # ("[repo1, repo2, ...]") and provides combined metadata.
         dataset = make_dataset_without_config(
             repo_id=repo_id,
             action_delta_indices=list(cfg.policy.action_delta_indices),
@@ -333,12 +331,14 @@ def train(cfg: TrainConfig):
             use_imagenet_stats=cfg.policy.observation_encoder.use_imagenet_stats,
             plugins=[ControlModePlugin()],
         )
-        ds_metadata = dataset.meta
 
-        # Build task_index → task_text lookup for CLIP conditioning.
-        # LeRobotDatasetMetadata.tasks is a pandas DataFrame (single-dataset),
-        # robocandywrapper .meta.tasks is a plain dict (multi-dataset).
-        tasks = ds_metadata.tasks
+        # All metadata comes from dataset.meta (robocandywrapper's combined
+        # metadata for multi-dataset, or LeRobot metadata for single-dataset).
+        ds_meta = dataset.meta
+
+        # Task text lookup for CLIP conditioning.
+        # .tasks is a plain dict (multi-dataset) or pandas DataFrame (single).
+        tasks = ds_meta.tasks
         if isinstance(tasks, dict):
             task_index_to_text = {int(k): str(v) for k, v in tasks.items()}
         else:
@@ -347,17 +347,19 @@ def train(cfg: TrainConfig):
         if runtime_context.is_main_process:
             logging.info(f"Task descriptions: {task_index_to_text}")
 
-        # Detect sub-features and narrow to pos + eef_pose
-        detected_state, detected_action = detect_sub_features(ds_metadata.features)
-        state_keys = cfg.state_keys or select_default_keys(detected_state, detected_action)[0]
-        action_keys = cfg.action_keys or select_default_keys(detected_state, detected_action)[1]
+        # State/action keys from config (defaults to pos + eef_pose).
+        # No auto-detection needed — keys are explicit in config/defaults.
+        state_keys = cfg.state_keys
+        action_keys = cfg.action_keys
         if runtime_context.is_main_process:
             logging.info(f"Sub-feature keys — state: {state_keys}, action: {action_keys}")
 
-        # Build norm mask: True for dims that get delta + normalization, False for 6D rotation
+        # Build features and norm mask. compute_adapted_features uses
+        # ds_meta.features for image discovery and falls back to known
+        # dimensions for sub-feature keys (pos/eef_pose).
         rot6d_start, rot6d_end = cfg.rot6d_slice
         input_features, output_features = compute_adapted_features(
-            ds_metadata.features, state_keys, action_keys,
+            ds_meta.features, state_keys, action_keys,
         )
         state_dim = input_features["observation.state"].shape[0]
         norm_mask = build_norm_mask(state_dim, rot6d_start, rot6d_end)
