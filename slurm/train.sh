@@ -20,7 +20,7 @@ module load brics/apptainer-multi-node
 # Paths — repo on home, everything heavy on scratch.
 home_dir="/home/u6cr/pravsels.u6cr"
 scratch_dir="/scratch/u6cr/pravsels.u6cr"
-repo_dir="${home_dir}/multitask_dit_policy"
+repo_dir="${home_dir}/multitask_dit_policy_stage1_multimodal_abstraction"
 data_dir="${scratch_dir}/multitask_dit_policy"
 container="${data_dir}/container/multitask-dit-policy_arm64.sif"
 
