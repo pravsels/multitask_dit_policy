@@ -61,6 +61,14 @@ if [ -n "${EXTRA_TRAIN_ARGS}" ]; then
     echo "Extra train args: ${EXTRA_TRAIN_ARGS}"
 fi
 
+HF_TOKEN_FILE="${home_dir}/.hf_token"
+if [ -f "${HF_TOKEN_FILE}" ]; then
+    HF_TOKEN="$(cat "${HF_TOKEN_FILE}" | tr -d '[:space:]')"
+    echo "HF token loaded from ${HF_TOKEN_FILE}"
+else
+    echo "WARNING: No HF token found at ${HF_TOKEN_FILE} — unauthenticated requests may be rate-limited"
+fi
+
 WANDB_TOKEN_FILE="${scratch_dir}/.wandb_token"
 if [ -f "${WANDB_TOKEN_FILE}" ]; then
     WANDB_API_KEY="$(cat "${WANDB_TOKEN_FILE}" | tr -d '[:space:]')"
@@ -85,6 +93,7 @@ apptainer exec --nv \
     --env "HF_HOME=${HF_CACHE}" \
     --env "HF_HUB_CACHE=${HF_CACHE}/hub" \
     --env "HF_LEROBOT_HOME=${HF_LEROBOT_HOME}" \
+    --env "HF_TOKEN=${HF_TOKEN:-}" \
     "${container}" \
     bash -c "${EXPORT_VARS} && ${TRAIN_CMD}"
 EXIT_CODE=$?
