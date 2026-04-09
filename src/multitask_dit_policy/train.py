@@ -35,8 +35,6 @@ import numpy as np
 import torch
 import torch.distributed as dist
 import wandb
-from lerobot.datasets.lerobot_dataset import LeRobotDatasetMetadata
-from lerobot.datasets.sampler import EpisodeAwareSampler
 from lerobot.datasets.utils import cycle
 from robocandywrapper import make_dataset_without_config
 from robocandywrapper.plugins import ControlModePlugin
@@ -324,8 +322,18 @@ def train(cfg: TrainConfig):
             repo_id = cfg.dataset_path
             root = None
 
-        # Load metadata for feature detection and episode boundaries
-        ds_metadata = LeRobotDatasetMetadata(repo_id=repo_id, root=root)
+        # Create dataset first — robocandywrapper handles multi-dataset
+        # configs ("[repo1, repo2, ...]") and provides combined metadata.
+        dataset = make_dataset_without_config(
+            repo_id=repo_id,
+            action_delta_indices=list(cfg.policy.action_delta_indices),
+            observation_delta_indices=list(cfg.policy.observation_delta_indices),
+            root=root,
+            video_backend="pyav",
+            use_imagenet_stats=cfg.policy.observation_encoder.use_imagenet_stats,
+            plugins=[ControlModePlugin()],
+        )
+        ds_metadata = dataset.meta
 
         # Build task_index → task_text lookup for CLIP conditioning
         task_index_to_text = {row.task_index: task for task, row in ds_metadata.tasks.iterrows()}
@@ -373,17 +381,6 @@ def train(cfg: TrainConfig):
         policy.to(runtime_context.device)
         policy.train()
 
-        # Create dataset via RoboCandyWrapper (handles delta_timestamps automatically)
-        dataset = make_dataset_without_config(
-            repo_id=repo_id,
-            action_delta_indices=list(policy_config.action_delta_indices),
-            observation_delta_indices=list(policy_config.observation_delta_indices),
-            root=root,
-            video_backend="pyav",
-            use_imagenet_stats=True,
-            plugins=[ControlModePlugin()],
-        )
-
         # Compute Ramen per-timestep percentile stats (cached to disk)
         stats_cache = run_dir / "ramen_stats.pt"
         ramen_stats = load_or_compute_ramen_stats(
@@ -397,34 +394,25 @@ def train(cfg: TrainConfig):
         )
         norm_mask = norm_mask.to(runtime_context.device)
 
-        # Materialize episode-aware indices (respects drop_n_last_frames)
-        episode_indices = list(
-            EpisodeAwareSampler(
-                ds_metadata.episodes["dataset_from_index"],
-                ds_metadata.episodes["dataset_to_index"],
-                drop_n_last_frames=cfg.policy.drop_n_last_frames,
-                shuffle=False,
-            )
+        # Compute valid indices: filters out policy frames from DAgger datasets
+        # and drops the last N frames per episode for action horizon safety.
+        valid_indices, filtering_report = compute_valid_indices(
+            dataset, drop_n_last_frames=cfg.policy.drop_n_last_frames,
         )
-
-        # Filter out autonomous policy frames from DAgger datasets
-        valid_indices, filtering_report = compute_valid_indices(dataset)
         total_frames = len(dataset)
-        if len(valid_indices) < total_frames:
-            valid_set = set(valid_indices)
-            episode_indices = [i for i in episode_indices if i in valid_set]
-            if runtime_context.is_main_process:
+        if runtime_context.is_main_process:
+            if len(valid_indices) < total_frames:
                 logging.info(
                     "DAgger filtering: keeping %d/%d frames (%.1f%%)",
-                    len(episode_indices), total_frames,
-                    100 * len(episode_indices) / max(total_frames, 1),
+                    len(valid_indices), total_frames,
+                    100 * len(valid_indices) / max(total_frames, 1),
                 )
-                write_filtering_report(filtering_report, run_dir / VALID_INDICES_FILENAME)
-        elif runtime_context.is_main_process:
-            logging.info("No DAgger policy frames detected, using all %d frames", total_frames)
+            else:
+                logging.info("No DAgger policy frames detected, using all %d frames", total_frames)
+            write_filtering_report(filtering_report, run_dir / VALID_INDICES_FILENAME)
 
         sampler = DistributedIndexSampler(
-            indices=episode_indices,
+            indices=valid_indices,
             num_replicas=runtime_context.world_size,
             rank=runtime_context.rank,
             shuffle=True,

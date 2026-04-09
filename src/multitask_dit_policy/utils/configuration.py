@@ -378,6 +378,16 @@ class ObservationEncoderConfig:
     def uses_multimodal_encoder(self) -> bool:
         return self.multimodal is not None
 
+    @property
+    def use_imagenet_stats(self) -> bool:
+        """Whether dataset images should be normalized with ImageNet mean/std.
+
+        True for standalone vision encoders (CLIP, DINOv3) which expect
+        ImageNet-normalized inputs.  False when using a multimodal encoder
+        (e.g. Qwen) whose processor handles its own normalization.
+        """
+        return not self.uses_multimodal_encoder
+
 
 @dataclass
 class MultiTaskDiTConfig:

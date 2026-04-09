@@ -90,8 +90,14 @@ def _human_frame_indices(segments, episode_length: int) -> set[int]:
     return human_frames
 
 
-def compute_valid_indices(dataset) -> tuple[list[int], dict[str, Any]]:
+def compute_valid_indices(
+    dataset, *, drop_n_last_frames: int = 0,
+) -> tuple[list[int], dict[str, Any]]:
     """Compute valid global indices and a per-dataset filtering report.
+
+    Excludes autonomous policy frames (from ControlModePlugin) and
+    optionally the last *drop_n_last_frames* frames of each episode
+    (to keep action horizons within episode boundaries).
 
     Returns:
         A tuple of (valid_global_indices, report) where report is a dict
@@ -122,12 +128,16 @@ def compute_valid_indices(dataset) -> tuple[list[int], dict[str, Any]]:
             episode_length = int(ep_to[ep_idx]) - ep_start
             ds_total += episode_length
 
+            usable_length = max(0, episode_length - drop_n_last_frames)
+
             segments = episode_modes.get(ep_idx)
             for seg_start, seg_end in _policy_segments(segments):
                 ds_excluded.append([ep_start + seg_start, ep_start + seg_end])
 
             human_frames = _human_frame_indices(segments, episode_length)
             for frame_in_episode in sorted(human_frames):
+                if frame_in_episode >= usable_length:
+                    break
                 local_idx = ep_start + frame_in_episode
                 if local_to_virtual is None:
                     global_idx = global_offset + local_idx
