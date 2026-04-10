@@ -12,7 +12,7 @@
 | 3705708 | ~Apr 8 | Failed | `KeyError: 'observation.state.pos'` — hardcoded key names didn't match block tower dataset schema |
 | 3707280 | Apr 9 12:54 | Cancelled | Ramen stats stuck at ~10 it/s over 341k samples (~9.5h ETA), video decoding bottleneck |
 | 3707596 | Apr 9 13:00 | Cancelled | Bulk parquet stats worked, but unauthenticated HF requests hit 429 rate limits |
-| 3707697 | Apr 9 13:00 | **Running** | Clean run, HF token loaded, training underway. Loss ~1.0 after 48 steps |
+| 3707697 | Apr 9 13:00 | **Timeout** | Clean run, 35k/50k steps completed before 24h walltime. Loss decreasing at cutoff. |
 
 ## Dataset
 
@@ -86,9 +86,18 @@ Checked Apr 9:
 | `multitask_dit_policy` | 41 GB |
 | **Total (measured)** | **~1.15 TB / 5 TB quota** |
 
+## W&B
+- local: `wandb/offline-run-20260409_130038-pv8q64et`
+- synced: https://wandb.ai/pravsels/dit_block_tower/runs/pv8q64et
+
+## HuggingFace
+- repo: https://huggingface.co/pravsels/dit_block_tower_baseline
+- uploaded checkpoints: step 35000, params only
+- includes: README, TRAINING_LOG, assets (ramen_stats.pt, valid_indices.json)
+
 ## Next Steps
 
-- Monitor job 3707697 for convergence
+- Resume from checkpoint_35000 for remaining 15k steps
 - Check `valid_indices.json` report for DAgger filtering correctness
 - Evaluate checkpoints on `villekuosmanen/eval_build_block_tower_dino_test_set` (5 episodes)
 - Consider cleaning `openpi` scratch if storage pressure increases
