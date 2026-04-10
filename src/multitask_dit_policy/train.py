@@ -338,6 +338,7 @@ def train(cfg: TrainConfig):
 
         cfg.policy.input_features = input_features
         cfg.policy.output_features = output_features
+        cfg.policy.dataset_schema = schema
 
         # Auto-detect latest checkpoint in run_dir for resume
         checkpoint_path = cfg.checkpoint_path

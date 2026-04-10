@@ -471,6 +471,11 @@ class MultiTaskDiTConfig:
     optimizer_eps: float = 1e-8
     optimizer_weight_decay: float = 0.0  # No weight decay is suggested to be optimal
 
+    # Dataset schema — records which dataset keys compose state/action vectors
+    # and which dims undergo rotation conversion.  Saved into checkpoints so
+    # deploy scripts can reconstruct the observation/action layout.
+    dataset_schema: DatasetSchema | None = None
+
     # Input/Output features
     input_features: dict[str, Any] = field(default_factory=dict)
     output_features: dict[str, Any] = field(default_factory=dict)
@@ -507,6 +512,20 @@ class MultiTaskDiTConfig:
                 else:
                     converted_output_features[key] = value
             self.output_features = converted_output_features
+
+        if isinstance(self.dataset_schema, dict):
+            raw = self.dataset_schema
+            self.dataset_schema = DatasetSchema(
+                state=[
+                    SchemaEntry(**e) if isinstance(e, dict) else e
+                    for e in raw.get("state", [])
+                ],
+                action=[
+                    SchemaEntry(**e) if isinstance(e, dict) else e
+                    for e in raw.get("action", [])
+                ],
+                rot6d_slice=tuple(raw.get("rot6d_slice", (10, 16))),
+            )
 
     def get_optimizer_preset(self) -> AdamConfig:
         """Return Adam optimizer configuration
