@@ -24,7 +24,7 @@ dataset_schema:
   rot6d_slice: [10, 16]
 
 batch_size: 80
-num_workers: 32
+num_workers: 28
 prefetch_factor: 1
 train_steps: 50000
 save_freq: 5000
