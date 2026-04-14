@@ -1,0 +1,68 @@
+dataset_path: >-
+  [villekuosmanen/build_block_tower,
+  villekuosmanen/dAgger_build_block_tower_1.0.0,
+  villekuosmanen/dAgger_build_block_tower_1.1.0,
+  villekuosmanen/dAgger_build_block_tower_1.2.0,
+  villekuosmanen/dAgger_build_block_tower_1.3.0,
+  villekuosmanen/dAgger_build_block_tower_1.4.0]
+  
+run_name: block_tower_baseline_v2_bs320_lr3e4
+
+dataset_schema:
+  state:
+    - key: observation.state
+      dim: 7
+    - key: observation.eef_6d_pose
+      dim: 6
+      convert_rotation: true
+  action:
+    - key: action
+      dim: 7
+    - key: action.eef_pose
+      dim: 7
+      convert_rotation: true
+  rot6d_slice: [10, 16]
+
+batch_size: 80
+num_workers: 8
+train_steps: 50000
+save_freq: 5000
+log_freq: 100
+use_amp: true
+lr_scheduler: cosine
+lr_warmup_steps: 500
+lr_scheduler_min_lr_scale: 0.1
+
+policy:
+  n_obs_steps: 2
+  horizon: 100
+  n_action_steps: 50
+  drop_n_last_frames: 0
+  do_mask_loss_for_padding: true
+  optimizer_lr: 3.0e-4
+  optimizer_betas: [0.95, 0.999]
+  optimizer_eps: 1.0e-8
+  optimizer_weight_decay: 0.0
+  objective:
+    type: diffusion
+    noise_scheduler_type: DDPM
+    num_train_timesteps: 100
+    beta_schedule: squaredcos_cap_v2
+    beta_start: 0.0001
+    beta_end: 0.02
+    prediction_type: epsilon
+    clip_sample: true
+    clip_sample_range: 1.0
+    num_inference_steps: 100
+  observation_encoder:
+    text:
+      type: clip
+      model: openai/clip-vit-base-patch16
+    vision:
+      type: clip
+      backbone: vit_base_patch16_clip_224.openai
+      crop_shape: [224, 224]
+      resize_shape: null
+      lr_multiplier: 0.1
+      crop_is_random: false
+      use_separate_encoder_per_camera: true
