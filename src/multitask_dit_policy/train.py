@@ -26,6 +26,7 @@ import logging
 import math
 import os
 import random
+import shutil
 import warnings
 from dataclasses import asdict, dataclass, field
 from datetime import timedelta
@@ -92,6 +93,7 @@ class TrainConfig:
     num_workers: int = 2
     train_steps: int = 10_000
     save_freq: int = 500
+    keep_freq: int | None = None
     log_freq: int = 25
     output_dir: str = "outputs"
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
@@ -118,6 +120,8 @@ class TrainConfig:
                 "lr_scheduler_min_lr_scale must be in [0, 1], "
                 f"got {self.lr_scheduler_min_lr_scale}"
             )
+        if self.keep_freq is not None and self.keep_freq <= 0:
+            raise ValueError(f"keep_freq must be positive when set, got {self.keep_freq}")
 
 
 def get_runtime_context(configured_device: str) -> RuntimeContext:
@@ -527,6 +531,18 @@ def train(cfg: TrainConfig):
                     "scaler": scaler.state_dict(),
                 }, save_path / "train_state.pt")
                 logging.info(f"Saved checkpoint to {save_path}")
+                should_keep_checkpoint = (
+                    cfg.keep_freq is None
+                    or step % cfg.keep_freq == 0
+                    or step == cfg.train_steps
+                )
+                if not should_keep_checkpoint:
+                    shutil.rmtree(save_path)
+                    logging.info(
+                        "Pruned checkpoint %s (keep_freq=%s)",
+                        save_path.name,
+                        cfg.keep_freq,
+                    )
             if runtime_context.use_ddp and step % cfg.save_freq == 0:
                 dist.barrier()
 
