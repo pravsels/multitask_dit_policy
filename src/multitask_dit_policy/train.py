@@ -91,6 +91,7 @@ class TrainConfig:
     # Training parameters
     batch_size: int = 16
     num_workers: int = 2
+    prefetch_factor: int = 2
     train_steps: int = 10_000
     save_freq: int = 500
     keep_freq: int | None = None
@@ -122,6 +123,8 @@ class TrainConfig:
             )
         if self.keep_freq is not None and self.keep_freq <= 0:
             raise ValueError(f"keep_freq must be positive when set, got {self.keep_freq}")
+        if self.prefetch_factor <= 0:
+            raise ValueError(f"prefetch_factor must be positive, got {self.prefetch_factor}")
 
 
 def get_runtime_context(configured_device: str) -> RuntimeContext:
@@ -416,7 +419,7 @@ def train(cfg: TrainConfig):
             pin_memory=runtime_context.autocast_device_type == "cuda",
             persistent_workers=cfg.num_workers > 0,
             drop_last=False,
-            prefetch_factor=2 if cfg.num_workers > 0 else None,
+            prefetch_factor=cfg.prefetch_factor if cfg.num_workers > 0 else None,
         )
 
         optimizer_config = policy_config.get_optimizer_preset()
