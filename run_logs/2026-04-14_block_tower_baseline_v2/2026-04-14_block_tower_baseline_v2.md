@@ -16,16 +16,17 @@
 - key settings: batch_size=80 per GPU (320 global), train_steps=40000, optimizer_lr=3e-4, warmup=500, save_freq=5000
 
 ## Job
-- execution_id: pending
-- submitted/start: pending
-- start_human: pending
+- execution_id: 3811446
+- submitted/start: 2026-04-14T07:19:42Z
+- start_human: Tuesday, Apr 14, 2026 07:19 UTC
 - end: pending
 - end_human: pending
 - runtime: pending
-- node: pending
+- node: pending (queue)
 
 ## Status
-- pending submission
+- 2026-04-14 07:19 UTC - submitted as Slurm job 3811446
+- 2026-04-14 07:19 UTC - queue state: PENDING (Priority)
 
 ## Results
 - runtime: pending
