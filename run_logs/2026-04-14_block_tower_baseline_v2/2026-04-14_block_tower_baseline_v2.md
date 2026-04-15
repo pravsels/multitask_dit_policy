@@ -17,12 +17,13 @@
 
 ## Job
 - execution_id: 3819692
-- submitted/start: 2026-04-14T21:30:00Z
-- start_human: Monday, Apr 14, 2026 21:30 UTC
-- end: pending
-- end_human: pending
-- runtime: pending
-- node: pending
+- submitted: 2026-04-14T21:30:00Z
+- start: 2026-04-15T03:54:12Z
+- start_human: Tuesday, Apr 15, 2026 03:54 UTC
+- end: 2026-04-15T04:28:26Z
+- end_human: Tuesday, Apr 15, 2026 04:28 UTC
+- runtime: 00:34:14
+- node: nid010634
 
 ## Status
 - 2026-04-14 07:19 UTC - submitted as Slurm job 3811446
@@ -36,22 +37,23 @@
 - 2026-04-14 18:48 UTC - resubmitted as 3815464 (`workers=24`, `prefetch_factor=1`), ran on nid011127
 - 2026-04-14 19:42 UTC - job 3815464 OUT_OF_MEMORY at step 1164/50000 (loss=0.0417, ~1.66 it/s, 51 min runtime, MaxRSS=247GB)
 - 2026-04-14 21:30 UTC - resubmitted as 3819692 (`workers=20`, `prefetch_factor=1`), pending
+- 2026-04-15 04:28 UTC - job 3819692 FAILED on nid010634 after 00:34:14 (Slurm exit 1:0); stderr shows NCCL watchdog collective timeout at sequence 214 (rank 1/2/3), torchrun aborted with `ChildFailedError`
 
 ## Results
-- runtime: pending
-- final step: pending
-- start_train_loss: pending
-- end_train_loss: pending
+- runtime: 00:34:14
+- final step: 7/50000 (failed before stable throughput window)
+- start_train_loss: ~1.07
+- end_train_loss: ~1.05 (last logged)
 - start_val_loss: pending
 - end_val_loss: pending
-- loss_one_liner: pending
+- loss_one_liner: short warm-up progress (1.07 -> ~1.05 by step 7), then distributed timeout failure
 - checkpoint: pending
 - config_snapshot: pending
 
 ## W&B
 - local: `outputs/block_tower_baseline_v2_bs320_lr3e4/wandb/offline-run-20260414_184808-qcjwdkge`
 - synced: pending
-- notes: multiple OOM kills while tuning host-side data pipeline; workers=24 lasted longest (1164 steps, loss=0.0417) before host RAM exhaustion
+- notes: this attempt did not OOM; it failed via NCCL watchdog timeout after ~30 minutes with one rank hanging at collective sequence 214
 
 ## HuggingFace
 - repo: pending
@@ -59,6 +61,6 @@
 - includes: pending
 
 ## Next
-- monitor 3819692 for OOM stability past step 1164
-- if OOM recurs, reduce `num_workers` to 16
-- if stable, run to checkpoint at step 10000 and compare loss trajectory to v1
+- collect per-rank throughput and dataloader timing around step 1-20 to find rank skew before collective 214
+- retry with safer distributed settings (e.g. `NCCL_ASYNC_ERROR_HANDLING=1`, debug envs) and reduced loader pressure if skew persists
+- if instability repeats, run a short-control job at reduced workers (e.g. 16) to validate whether host-side input jitter is the trigger
