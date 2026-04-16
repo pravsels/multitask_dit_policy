@@ -552,6 +552,9 @@ def train(cfg: TrainConfig):
             progress_bar.update(1)
             progress_bar.set_postfix(loss=loss.item())
 
+            if runtime_context.use_ddp and step % cfg.log_freq == 0:
+                dist.all_reduce(loss, op=dist.ReduceOp.AVG)
+
             if runtime_context.is_main_process and step % cfg.log_freq == 0:
                 lr = optimizer.param_groups[0]["lr"]
                 logging.info(f"Step {step}: loss={loss.item():.6f} grad_norm={grad_norm:.4f} lr={lr:.2e}")
