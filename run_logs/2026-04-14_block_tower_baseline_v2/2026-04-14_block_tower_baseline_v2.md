@@ -41,6 +41,7 @@
 - 2026-04-15 ~11:00 UTC - resubmitted as 3828939 (`workers=8`, `prefetch_factor=2`, `TORCH_NCCL_TRACE_BUFFER_SIZE=1000`, `NCCL_ASYNC_ERROR_HANDLING=1`); reduced workers from 20→8 to cut Lustre I/O contention, increased prefetch to 2 to maintain pipeline depth
 - 2026-04-15 11:31 UTC - job 3828939 running on nid010251, stable throughput ~1.2 it/s
 - 2026-04-16 11:31 UTC - job TIMEOUT at 24h walltime, step 28,974/50,000; loss ~0.009–0.02, throughput ~1.2 it/s with periodic bursty stalls; checkpoint_25000 was saved but pruned by keep_freq=10000 logic (save-then-delete), leaving checkpoint_20000 as latest on disk
+- 2026-04-16 ~12:00 UTC - resubmitted as 3856137 to resume from checkpoint_20000; updated code with checkpoint pruning fix (`397136e`): save_freq=1000, keep_freq=5000, rolling window retained until milestone; pending (Priority)
 
 ## Results
 - runtime: 24h (walltime limit)
@@ -64,6 +65,6 @@
 - includes: pending
 
 ## Next
-- resume from checkpoint_20000 to finish remaining ~30k steps
-- checkpoint logic fixed: save_freq=1000, keep_freq=5000, rolling window of recent checkpoints (old save-then-delete bug fixed)
-- push updated code to cluster before resubmitting
+- monitor 3856137 for resume from checkpoint_20000 (auto-detect), confirm training continues from step 20000
+- expect ~30k remaining steps; at ~1.2 it/s should reach ~50k within 24h walltime
+- if walltime hit again, latest checkpoint will be at most 1k steps old (rolling window fix)
