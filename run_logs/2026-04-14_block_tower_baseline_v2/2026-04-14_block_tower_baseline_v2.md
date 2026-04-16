@@ -18,12 +18,12 @@
 ## Job
 - execution_id: 3828939
 - submitted: 2026-04-15T~11:00:00Z
-- start: pending
-- start_human: pending
-- end: pending
-- end_human: pending
-- runtime: pending
-- node: pending
+- start: 2026-04-15T11:31:35Z
+- start_human: Tuesday, Apr 15, 2026 11:31 UTC
+- end: 2026-04-16T11:31:54Z
+- end_human: Wednesday, Apr 16, 2026 11:31 UTC
+- runtime: 1-00:00:19 (walltime limit)
+- node: nid010251
 
 ## Status
 - 2026-04-14 07:19 UTC - submitted as Slurm job 3811446
@@ -39,22 +39,24 @@
 - 2026-04-14 21:30 UTC - resubmitted as 3819692 (`workers=20`, `prefetch_factor=1`), pending
 - 2026-04-15 04:28 UTC - job 3819692 FAILED on nid010634 after 00:34:14 (Slurm exit 1:0); stderr shows NCCL watchdog collective timeout at sequence 214 (rank 1/2/3), torchrun aborted with `ChildFailedError`
 - 2026-04-15 ~11:00 UTC - resubmitted as 3828939 (`workers=8`, `prefetch_factor=2`, `TORCH_NCCL_TRACE_BUFFER_SIZE=1000`, `NCCL_ASYNC_ERROR_HANDLING=1`); reduced workers from 20→8 to cut Lustre I/O contention, increased prefetch to 2 to maintain pipeline depth
+- 2026-04-15 11:31 UTC - job 3828939 running on nid010251, stable throughput ~1.2 it/s
+- 2026-04-16 11:31 UTC - job TIMEOUT at 24h walltime, step 28,974/50,000; loss ~0.009–0.02, throughput ~1.2 it/s with periodic bursty stalls; checkpoint_25000 was saved but pruned by keep_freq=10000 logic (save-then-delete), leaving checkpoint_20000 as latest on disk
 
 ## Results
-- runtime: pending
-- final step: pending
-- start_train_loss: pending
-- end_train_loss: pending
-- start_val_loss: pending
-- end_val_loss: pending
-- loss_one_liner: pending
-- checkpoint: pending
-- config_snapshot: pending
+- runtime: 24h (walltime limit)
+- final step: 28,974/50,000
+- start_train_loss: ~1.07
+- end_train_loss: ~0.009–0.02
+- start_val_loss: n/a
+- end_val_loss: n/a
+- loss_one_liner: 1.07 → ~0.01 by step 29k, noisy due to rank-0-only logging
+- checkpoint: checkpoint_20000 (latest on disk; checkpoint_25000 pruned, 30000 never reached)
+- config_snapshot: `config/train_block_tower_bs320_lr3e4.yaml`
 
 ## W&B
-- local: pending
-- synced: pending
-- notes: pending
+- local: `outputs/block_tower_baseline_v2_bs320_lr3e4/wandb/offline-run-20260415_113202-c00fb0ai`
+- synced: https://wandb.ai/pravsels/dit_block_tower_config_fix/runs/c00fb0ai
+- notes: periodic bursty stalls visible in throughput; loss curve noisy due to rank-0-only logging
 
 ## HuggingFace
 - repo: pending
@@ -62,6 +64,6 @@
 - includes: pending
 
 ## Next
-- monitor 3828939 for stable throughput past step 1000 (no bursty stalls)
-- if NCCL timeout recurs, flight recorder traces will show the stuck collective's stack trace
-- if stable, run to checkpoint at step 5000/10000 and compare loss trajectory to v1
+- resume from checkpoint_20000 to finish remaining ~30k steps
+- checkpoint logic fixed: save_freq=1000, keep_freq=5000, rolling window of recent checkpoints (old save-then-delete bug fixed)
+- push updated code to cluster before resubmitting

@@ -254,6 +254,27 @@ def build_lr_scheduler(
     raise ValueError(f"Unsupported lr_scheduler: {cfg.lr_scheduler}")
 
 
+def prune_checkpoints(
+    run_dir: Path, current_step: int, keep_freq: int, train_steps: int
+) -> list[str]:
+    """Remove non-permanent checkpoints from *previous* save_freq intervals.
+
+    Only call this when ``current_step`` is a ``keep_freq`` milestone.
+    Permanent checkpoints (multiples of ``keep_freq`` or the final training
+    step) are never removed.  Returns names of pruned checkpoint directories.
+    """
+    pruned: list[str] = []
+    for ckpt_dir in sorted(run_dir.glob("checkpoint_*")):
+        ckpt_step = int(ckpt_dir.name.split("_")[1])
+        if ckpt_step == current_step:
+            continue
+        is_permanent = (ckpt_step % keep_freq == 0) or (ckpt_step == train_steps)
+        if not is_permanent:
+            shutil.rmtree(ckpt_dir)
+            pruned.append(ckpt_dir.name)
+    return pruned
+
+
 def train(cfg: TrainConfig):
     runtime_context = get_runtime_context(cfg.device)
     setup_distributed(runtime_context)
@@ -534,18 +555,10 @@ def train(cfg: TrainConfig):
                     "scaler": scaler.state_dict(),
                 }, save_path / "train_state.pt")
                 logging.info(f"Saved checkpoint to {save_path}")
-                should_keep_checkpoint = (
-                    cfg.keep_freq is None
-                    or step % cfg.keep_freq == 0
-                    or step == cfg.train_steps
-                )
-                if not should_keep_checkpoint:
-                    shutil.rmtree(save_path)
-                    logging.info(
-                        "Pruned checkpoint %s (keep_freq=%s)",
-                        save_path.name,
-                        cfg.keep_freq,
-                    )
+                if cfg.keep_freq is not None and step % cfg.keep_freq == 0:
+                    pruned = prune_checkpoints(run_dir, step, cfg.keep_freq, cfg.train_steps)
+                    for name in pruned:
+                        logging.info("Pruned checkpoint %s (keep_freq=%s)", name, cfg.keep_freq)
             if runtime_context.use_ddp and step % cfg.save_freq == 0:
                 dist.barrier()
 
