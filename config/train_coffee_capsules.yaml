@@ -1,5 +1,5 @@
 dataset_path: villekuosmanen/bin_pick_pack_coffee_capsules
-run_name: coffee_capsules_bs320_lr3e4_v1
+run_name: coffee_capsules_norm_fix
 
 dataset_schema:
   state:

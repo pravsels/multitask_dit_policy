@@ -43,7 +43,7 @@ echo "Node: ${SLURM_NODELIST}"
 echo "Started (UTC): ${start_time}"
 echo "===================================="
 
-CONFIG_FILE="${repo_dir}/config/train_block_tower_bs320_lr3e4.yaml"
+CONFIG_FILE="${repo_dir}/config/train_block_tower.yaml"
 
 printf -v TRAIN_CMD 'torchrun --standalone --nnodes=1 --nproc_per_node=4 -m multitask_dit_policy.train --config_path %q --output_dir %q' "${CONFIG_FILE}" "${OUTPUT_DIR}"
 echo "Config file: ${CONFIG_FILE}"
