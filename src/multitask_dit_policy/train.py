@@ -57,6 +57,7 @@ from multitask_dit_policy.utils.valid_indices import (
 from multitask_dit_policy.utils.ramen_normalization import (
     build_norm_mask,
     compute_ramen_stats,
+    save_ramen_stats,
     ramen_normalize_batch,
 )
 from multitask_dit_policy.utils.utils import move_to_device, save_policy
@@ -178,8 +179,19 @@ def load_or_compute_ramen_stats(
     cache_path: str | Path | None,
     device: str,
     runtime_context: RuntimeContext,
+    horizon: int,
+    n_obs_steps: int,
+    drop_n_last_frames: int = 0,
 ) -> dict[str, torch.Tensor]:
-    kwargs = dict(schema=schema, norm_mask=norm_mask, cache_path=cache_path, device=device)
+    kwargs = dict(
+        schema=schema,
+        norm_mask=norm_mask,
+        cache_path=cache_path,
+        device=device,
+        horizon=horizon,
+        n_obs_steps=n_obs_steps,
+        drop_n_last_frames=drop_n_last_frames,
+    )
     if not runtime_context.use_ddp:
         return compute_ramen_stats(dataset, **kwargs)
 
@@ -394,7 +406,7 @@ def train(cfg: TrainConfig):
         # Compute Ramen per-timestep percentile stats (cached to disk).
         # Stats are computed by bulk-reading numerical columns directly from
         # the underlying parquet files, bypassing video decoding entirely.
-        stats_cache = run_dir / "ramen_stats.pt"
+        stats_cache = run_dir / f"ramen_stats_H{cfg.policy.horizon}_obs{cfg.policy.n_obs_steps}.json"
         ramen_stats = load_or_compute_ramen_stats(
             dataset=dataset,
             schema=schema,
@@ -402,6 +414,9 @@ def train(cfg: TrainConfig):
             cache_path=stats_cache,
             device=runtime_context.device,
             runtime_context=runtime_context,
+            horizon=cfg.policy.horizon,
+            n_obs_steps=cfg.policy.n_obs_steps,
+            drop_n_last_frames=cfg.policy.drop_n_last_frames,
         )
         norm_mask = norm_mask.to(runtime_context.device)
 
@@ -518,7 +533,10 @@ def train(cfg: TrainConfig):
             if "task" not in batch and "task_index" in batch:
                 batch["task"] = [task_index_to_text[idx.item()] for idx in batch["task_index"]]
 
-            normalized_batch = ramen_normalize_batch(batch, ramen_stats, norm_mask)
+            normalized_batch = ramen_normalize_batch(
+                batch, ramen_stats, norm_mask,
+                clip_value=cfg.policy.ramen_clip_value,
+            )
 
             optimizer.zero_grad()
 
@@ -547,7 +565,7 @@ def train(cfg: TrainConfig):
             if runtime_context.is_main_process and step % cfg.save_freq == 0:
                 save_path = run_dir / f"checkpoint_{step}"
                 save_policy(unwrap_model(policy), save_path)
-                torch.save(ramen_stats, save_path / "ramen_stats.pt")
+                save_ramen_stats(ramen_stats, save_path / "ramen_stats.json")
                 torch.save({
                     "step": step,
                     "optimizer": optimizer.state_dict(),
@@ -581,7 +599,7 @@ def train(cfg: TrainConfig):
         if runtime_context.is_main_process:
             final_dir = run_dir / "final_model"
             save_policy(unwrap_model(policy), final_dir)
-            torch.save(ramen_stats, final_dir / "ramen_stats.pt")
+            save_ramen_stats(ramen_stats, final_dir / "ramen_stats.json")
             torch.save({
                 "step": step,
                 "optimizer": optimizer.state_dict(),

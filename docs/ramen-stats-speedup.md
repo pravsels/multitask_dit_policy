@@ -45,4 +45,6 @@ The bottleneck shifts from video I/O to `torch.quantile` on the full tensor, whi
 
 ## Caching
 
-Stats are still cached to `{run_dir}/ramen_stats.pt` after first computation. Subsequent runs load from cache instantly regardless of method.
+Stats are now cached to `{run_dir}/ramen_stats_*.json` after first computation. The
+loader still accepts legacy `.pt` stats files for backward compatibility, and
+subsequent runs load from cache instantly regardless of method.

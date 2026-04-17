@@ -114,8 +114,15 @@ class DiffusionConfig(ObjectiveConfig):
     beta_start: float = 0.0001  # Small initial noise level
     beta_end: float = 0.02  # Moderate final noise level
     prediction_type: str = "epsilon"  # Predict noise (works better than direct prediction)
-    clip_sample: bool = True  # Prevent extreme action values
-    clip_sample_range: float = 1.0  # Clip to [-1, 1] range
+    # DEPRECATED: clip_sample / clip_sample_range have moved to the parent
+    # `MultiTaskDiTConfig.ramen_clip_value`, which is the single source of
+    # truth for both the Ramen training-time clamp and this scheduler's
+    # inference-time `clip_sample_range`. These fields are kept here only
+    # so existing checkpoint config.json files still load; their values
+    # are ignored at runtime (a DeprecationWarning is emitted by
+    # `DiffusionObjective.__init__` if they are set).
+    clip_sample: bool = True
+    clip_sample_range: float = 1.0
 
     # Inference configuration
     num_inference_steps: int | None = None  # Default to num_train_timesteps
@@ -459,11 +466,17 @@ class MultiTaskDiTConfig:
     )
 
     # Default trim keeps only windows with a full, unpadded action horizon.
-    drop_n_last_frames: int | None = None  # Auto-calculated: horizon - n_action_steps - n_obs_steps + 1
+    drop_n_last_frames: int | None = None  # Auto-calculated: max(0, horizon - n_action_steps)
     observation_encoder: ObservationEncoderConfig = field(default_factory=ObservationEncoderConfig)
     transformer: TransformerConfig = field(default_factory=TransformerConfig)
     objective: ObjectiveConfig = field(default_factory=DiffusionConfig)
     do_mask_loss_for_padding: bool = False  #  same logic as is implemented in LeRobot DP implementation
+
+    # Single source of truth for the Ramen normalization clamp. Used by
+    # `ramen_normalize` at training time and by the diffusion scheduler's
+    # `clip_sample_range` at inference time, so the two stay in lockstep.
+    # Default 1.5 matches the historical Ramen clamp.
+    ramen_clip_value: float = 1.5
 
     # training optimizer hyperparameters
     optimizer_lr: float = 2e-5
@@ -483,9 +496,14 @@ class MultiTaskDiTConfig:
 
     def __post_init__(self):
         if self.drop_n_last_frames is None:
-            self.drop_n_last_frames = self.horizon - self.n_action_steps - self.n_obs_steps + 1
+            self.drop_n_last_frames = max(0, self.horizon - self.n_action_steps)
         elif self.drop_n_last_frames < 0:
             raise ValueError(f"drop_n_last_frames must be non-negative, got {self.drop_n_last_frames}")
+
+        if self.ramen_clip_value <= 0:
+            raise ValueError(
+                f"ramen_clip_value must be positive, got {self.ramen_clip_value}"
+            )
 
         # Convert feature dictionaries to PolicyFeature objects if they were loaded from JSON
         # (when loading from JSON, draccus parses them as plain dicts)
@@ -586,4 +604,4 @@ class MultiTaskDiTConfig:
     @property
     def action_delta_indices(self) -> list:
         """Delta indices for action horizon prediction."""
-        return list(range(1 - self.n_obs_steps, 1 - self.n_obs_steps + self.horizon))
+        return list(range(0, self.horizon))

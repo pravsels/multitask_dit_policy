@@ -241,7 +241,9 @@ prediction" property that diffusion benefits from.
    Option A. Keep obs stats at `(1, D)` (state is single-step at inference).
 2. Bump the cache path / file naming so old `(1, D)` caches don't get
    silently reused.
-3. Verify by loading the new `ramen_stats.pt` and asserting:
+3. Verify by loading the new stats artifact (canonical
+   `ramen_stats.json` / `ramen_stats_*.json`; legacy `.pt` remains supported
+   for older checkpoints) and asserting:
    - `action_q98[31] - action_q98[0]` is much greater than zero on motion-heavy dims
    - `action_q98[31, gripper_idx]` is on the order of the full grip range, not 0.017
 4. Retrain. No deploy-side changes required — the existing

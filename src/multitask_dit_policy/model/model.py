@@ -103,6 +103,7 @@ class MultiTaskDiTPolicy(nn.Module):
                 action_dim=action_dim,
                 horizon=horizon,
                 do_mask_loss_for_padding=config.do_mask_loss_for_padding,
+                ramen_clip_value=config.ramen_clip_value,
             )
         elif config.is_flow_matching:
             self.objective = FlowMatchingObjective(
@@ -158,9 +159,7 @@ class MultiTaskDiTPolicy(nn.Module):
         conditioning_vec = self.observation_encoder.encode(batch)
         actions = self.objective.conditional_sample(self.noise_predictor, batch_size, conditioning_vec)
 
-        start_idx = n_obs_steps - 1
-        end_idx = start_idx + self.config.n_action_steps
-        return actions[:, start_idx:end_idx]
+        return actions[:, : self.config.n_action_steps]
 
     def reset(self):
         """Clear observation and action queues."""

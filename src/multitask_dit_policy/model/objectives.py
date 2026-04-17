@@ -80,17 +80,38 @@ class DiffusionObjective(BaseObjective):
     Contains the noise scheduler, training loss, and conditional sampling.
     """
 
-    def __init__(self, config, action_dim: int, horizon: int, do_mask_loss_for_padding: bool = False):
+    def __init__(
+        self,
+        config,
+        action_dim: int,
+        horizon: int,
+        do_mask_loss_for_padding: bool = False,
+        *,
+        ramen_clip_value: float,
+    ):
         super().__init__(config, action_dim, horizon)
         self.do_mask_loss_for_padding = do_mask_loss_for_padding
 
-        # Build noise scheduler
+        legacy_clip = getattr(config, "clip_sample_range", None)
+        if legacy_clip is not None and legacy_clip != ramen_clip_value:
+            import warnings as _warnings
+            _warnings.warn(
+                f"DiffusionConfig.clip_sample_range={legacy_clip} is deprecated and "
+                f"ignored; using MultiTaskDiTConfig.ramen_clip_value={ramen_clip_value} "
+                f"as the single source of truth for both the Ramen clamp and the "
+                f"DDIM clip_sample_range.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         scheduler_kwargs = {
             "num_train_timesteps": config.num_train_timesteps,
             "beta_start": config.beta_start,
             "beta_end": config.beta_end,
             "beta_schedule": config.beta_schedule,
             "prediction_type": config.prediction_type,
+            "clip_sample": True,
+            "clip_sample_range": ramen_clip_value,
         }
 
         if config.noise_scheduler_type == "DDPM":

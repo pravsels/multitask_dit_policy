@@ -1,0 +1,218 @@
+{
+  "repo": "pravsels/dit_coffee_capsules_config_fix",
+  "checkpoint_dir": "checkpoint_30000",
+  "config_horizon": 32,
+  "config_n_action_steps": 32,
+  "stats_shapes": {
+    "obs_q02": [
+      1,
+      17
+    ],
+    "obs_q98": [
+      1,
+      17
+    ],
+    "action_q02": [
+      1,
+      17
+    ],
+    "action_q98": [
+      1,
+      17
+    ],
+    "norm_mask": [
+      17
+    ]
+  },
+  "is_buggy_1d": true,
+  "per_dim_compare": [
+    {
+      "dim": 0,
+      "label": "joint_0",
+      "norm_masked": true,
+      "ckpt_action_q02": -0.0915536880493164,
+      "ckpt_action_q98": 0.10452461242675781,
+      "recomputed_single_frame_q02": -0.0915536880493164,
+      "recomputed_single_frame_q98": 0.10452461242675781,
+      "diff_q02": 0.0,
+      "diff_q98": 0.0
+    },
+    {
+      "dim": 1,
+      "label": "joint_1",
+      "norm_masked": true,
+      "ckpt_action_q02": -0.12321662902832031,
+      "ckpt_action_q98": 0.1377124786376953,
+      "recomputed_single_frame_q02": -0.12321662902832031,
+      "recomputed_single_frame_q98": 0.1377124786376953,
+      "diff_q02": 0.0,
+      "diff_q98": 0.0
+    },
+    {
+      "dim": 2,
+      "label": "joint_2",
+      "norm_masked": true,
+      "ckpt_action_q02": -0.16021987795829773,
+      "ckpt_action_q98": 0.11787605285644531,
+      "recomputed_single_frame_q02": -0.16021987795829773,
+      "recomputed_single_frame_q98": 0.11787605285644531,
+      "diff_q02": 0.0,
+      "diff_q98": 0.0
+    },
+    {
+      "dim": 3,
+      "label": "joint_3",
+      "norm_masked": true,
+      "ckpt_action_q02": -0.0995645523071289,
+      "ckpt_action_q98": 0.119296133518219,
+      "recomputed_single_frame_q02": -0.0995645523071289,
+      "recomputed_single_frame_q98": 0.119296133518219,
+      "diff_q02": 0.0,
+      "diff_q98": 0.0
+    },
+    {
+      "dim": 4,
+      "label": "joint_4",
+      "norm_masked": true,
+      "ckpt_action_q02": -0.0648508071899414,
+      "ckpt_action_q98": 0.0705728530883789,
+      "recomputed_single_frame_q02": -0.0648508071899414,
+      "recomputed_single_frame_q98": 0.0705728530883789,
+      "diff_q02": 0.0,
+      "diff_q98": 0.0
+    },
+    {
+      "dim": 5,
+      "label": "joint_5",
+      "norm_masked": true,
+      "ckpt_action_q02": -0.143327996134758,
+      "ckpt_action_q98": 0.1403827667236328,
+      "recomputed_single_frame_q02": -0.143327996134758,
+      "recomputed_single_frame_q98": 0.1403827667236328,
+      "diff_q02": 0.0,
+      "diff_q98": 0.0
+    },
+    {
+      "dim": 6,
+      "label": "joint_gripper",
+      "norm_masked": true,
+      "ckpt_action_q02": -0.03953602910041809,
+      "ckpt_action_q98": 0.03620614483952522,
+      "recomputed_single_frame_q02": -0.03953602910041809,
+      "recomputed_single_frame_q98": 0.03620614483952522,
+      "diff_q02": 0.0,
+      "diff_q98": 0.0
+    },
+    {
+      "dim": 7,
+      "label": "eef_xyz_x",
+      "norm_masked": true,
+      "ckpt_action_q02": -0.026906006038188934,
+      "ckpt_action_q98": 0.02477237954735756,
+      "recomputed_single_frame_q02": -0.026906006038188934,
+      "recomputed_single_frame_q98": 0.02477237954735756,
+      "diff_q02": 0.0,
+      "diff_q98": 0.0
+    },
+    {
+      "dim": 8,
+      "label": "eef_xyz_y",
+      "norm_masked": true,
+      "ckpt_action_q02": -0.026830509305000305,
+      "ckpt_action_q98": 0.037397537380456924,
+      "recomputed_single_frame_q02": -0.026830509305000305,
+      "recomputed_single_frame_q98": 0.037397537380456924,
+      "diff_q02": 0.0,
+      "diff_q98": 0.0
+    },
+    {
+      "dim": 9,
+      "label": "eef_xyz_z",
+      "norm_masked": true,
+      "ckpt_action_q02": -0.02882309816777706,
+      "ckpt_action_q98": 0.04244961962103844,
+      "recomputed_single_frame_q02": -0.02882309816777706,
+      "recomputed_single_frame_q98": 0.04244961962103844,
+      "diff_q02": 0.0,
+      "diff_q98": 0.0
+    },
+    {
+      "dim": 10,
+      "label": "rot6d_0",
+      "norm_masked": false,
+      "ckpt_action_q02": 0.010454365983605385,
+      "ckpt_action_q98": 0.9889652132987976,
+      "recomputed_single_frame_q02": 0.010454365983605385,
+      "recomputed_single_frame_q98": 0.9889651536941528,
+      "diff_q02": 0.0,
+      "diff_q98": 5.960464477539063e-08
+    },
+    {
+      "dim": 11,
+      "label": "rot6d_1",
+      "norm_masked": false,
+      "ckpt_action_q02": -0.6671814322471619,
+      "ckpt_action_q98": 0.02051381766796112,
+      "recomputed_single_frame_q02": -0.6671814322471619,
+      "recomputed_single_frame_q98": 0.02051381766796112,
+      "diff_q02": 0.0,
+      "diff_q98": 0.0
+    },
+    {
+      "dim": 12,
+      "label": "rot6d_2",
+      "norm_masked": false,
+      "ckpt_action_q02": -0.9905364513397217,
+      "ckpt_action_q98": 0.035659562796354294,
+      "recomputed_single_frame_q02": -0.9905364513397217,
+      "recomputed_single_frame_q98": 0.035659562796354294,
+      "diff_q02": 0.0,
+      "diff_q98": 0.0
+    },
+    {
+      "dim": 13,
+      "label": "rot6d_3",
+      "norm_masked": false,
+      "ckpt_action_q02": 0.015027343295514584,
+      "ckpt_action_q98": 0.9932604432106018,
+      "recomputed_single_frame_q02": 0.015027343295514584,
+      "recomputed_single_frame_q98": 0.9932604432106018,
+      "diff_q02": 0.0,
+      "diff_q98": 0.0
+    },
+    {
+      "dim": 14,
+      "label": "rot6d_4",
+      "norm_masked": false,
+      "ckpt_action_q02": -0.6923076510429382,
+      "ckpt_action_q98": 0.9986627101898193,
+      "recomputed_single_frame_q02": -0.6923076510429382,
+      "recomputed_single_frame_q98": 0.9986627101898193,
+      "diff_q02": 0.0,
+      "diff_q98": 0.0
+    },
+    {
+      "dim": 15,
+      "label": "rot6d_5",
+      "norm_masked": false,
+      "ckpt_action_q02": -0.18288974463939667,
+      "ckpt_action_q98": 0.3612729609012604,
+      "recomputed_single_frame_q02": -0.18288974463939667,
+      "recomputed_single_frame_q98": 0.3612729609012604,
+      "diff_q02": 0.0,
+      "diff_q98": 0.0
+    },
+    {
+      "dim": 16,
+      "label": "eef_gripper",
+      "norm_masked": true,
+      "ckpt_action_q02": -0.03953602910041809,
+      "ckpt_action_q98": 0.03620614483952522,
+      "recomputed_single_frame_q02": -0.03953602910041809,
+      "recomputed_single_frame_q98": 0.03620614483952522,
+      "diff_q02": 0.0,
+      "diff_q98": 0.0
+    }
+  ],
+  "max_diff_on_masked": 0.0
+}

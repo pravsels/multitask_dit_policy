@@ -1,0 +1,186 @@
+{
+  "episode": 166,
+  "t_in_episode": 25,
+  "global_index": 40412,
+  "task": [
+    "pick a single coffee capsule from the cardboard tray and drop it inside the brown cardboard container holding a plastic bag"
+  ],
+  "horizon": 32,
+  "per_dim": [
+    {
+      "dim": 0,
+      "label": "joint_0",
+      "norm_masked": true,
+      "gt_raw_p2p": 0.5027847290039062,
+      "n_chunk_positions_hard_clamped": 29,
+      "sum_abs_gap_norm": 8.436912536621094,
+      "sum_abs_gap_model": 0.21945154666900635,
+      "sum_abs_total_gap": 8.656364440917969
+    },
+    {
+      "dim": 1,
+      "label": "joint_1",
+      "norm_masked": true,
+      "gt_raw_p2p": 1.5491724014282227,
+      "n_chunk_positions_hard_clamped": 30,
+      "sum_abs_gap_norm": 24.087520599365234,
+      "sum_abs_gap_model": 0.3705832362174988,
+      "sum_abs_total_gap": 24.45810317993164
+    },
+    {
+      "dim": 2,
+      "label": "joint_2",
+      "norm_masked": true,
+      "gt_raw_p2p": 1.2642097473144531,
+      "n_chunk_positions_hard_clamped": 30,
+      "sum_abs_gap_norm": 20.338542938232422,
+      "sum_abs_gap_model": 0.23505401611328125,
+      "sum_abs_total_gap": 20.573596954345703
+    },
+    {
+      "dim": 3,
+      "label": "joint_3",
+      "norm_masked": true,
+      "gt_raw_p2p": 0.8087282180786133,
+      "n_chunk_positions_hard_clamped": 29,
+      "sum_abs_gap_norm": 10.909285545349121,
+      "sum_abs_gap_model": 0.31203001737594604,
+      "sum_abs_total_gap": 11.221315383911133
+    },
+    {
+      "dim": 4,
+      "label": "joint_4",
+      "norm_masked": true,
+      "gt_raw_p2p": 0.18959331512451172,
+      "n_chunk_positions_hard_clamped": 12,
+      "sum_abs_gap_norm": 0.7492179870605469,
+      "sum_abs_gap_model": 0.19637565314769745,
+      "sum_abs_total_gap": 0.9455936551094055
+    },
+    {
+      "dim": 5,
+      "label": "joint_5",
+      "norm_masked": true,
+      "gt_raw_p2p": 1.373311996459961,
+      "n_chunk_positions_hard_clamped": 21,
+      "sum_abs_gap_norm": 16.466569900512695,
+      "sum_abs_gap_model": 0.30496975779533386,
+      "sum_abs_total_gap": 16.77153968811035
+    },
+    {
+      "dim": 6,
+      "label": "joint_gripper",
+      "norm_masked": true,
+      "gt_raw_p2p": 2.5694258511066437e-05,
+      "n_chunk_positions_hard_clamped": 0,
+      "sum_abs_gap_norm": 1.210719347000122e-08,
+      "sum_abs_gap_model": 0.002682901918888092,
+      "sum_abs_total_gap": 0.002682897262275219
+    },
+    {
+      "dim": 7,
+      "label": "eef_xyz_x",
+      "norm_masked": true,
+      "gt_raw_p2p": 0.04886946082115173,
+      "n_chunk_positions_hard_clamped": 2,
+      "sum_abs_gap_norm": 0.0037942808121442795,
+      "sum_abs_gap_model": 0.21599771082401276,
+      "sum_abs_total_gap": 0.2197919487953186
+    },
+    {
+      "dim": 8,
+      "label": "eef_xyz_y",
+      "norm_masked": true,
+      "gt_raw_p2p": 0.20288364589214325,
+      "n_chunk_positions_hard_clamped": 28,
+      "sum_abs_gap_norm": 3.126413583755493,
+      "sum_abs_gap_model": 0.053479716181755066,
+      "sum_abs_total_gap": 3.179893732070923
+    },
+    {
+      "dim": 9,
+      "label": "eef_xyz_z",
+      "norm_masked": true,
+      "gt_raw_p2p": 0.06011812388896942,
+      "n_chunk_positions_hard_clamped": 0,
+      "sum_abs_gap_norm": 1.6763806343078613e-08,
+      "sum_abs_gap_model": 0.2936147451400757,
+      "sum_abs_total_gap": 0.2936147153377533
+    },
+    {
+      "dim": 10,
+      "label": "rot6d_0",
+      "norm_masked": false,
+      "gt_raw_p2p": 0.793467104434967,
+      "n_chunk_positions_hard_clamped": 0,
+      "sum_abs_gap_norm": 0.0,
+      "sum_abs_gap_model": 1.1146583557128906,
+      "sum_abs_total_gap": 1.1146583557128906
+    },
+    {
+      "dim": 11,
+      "label": "rot6d_1",
+      "norm_masked": false,
+      "gt_raw_p2p": 0.29664307832717896,
+      "n_chunk_positions_hard_clamped": 0,
+      "sum_abs_gap_norm": 0.0,
+      "sum_abs_gap_model": 0.6377489566802979,
+      "sum_abs_total_gap": 0.6377489566802979
+    },
+    {
+      "dim": 12,
+      "label": "rot6d_2",
+      "norm_masked": false,
+      "gt_raw_p2p": 0.8044878840446472,
+      "n_chunk_positions_hard_clamped": 0,
+      "sum_abs_gap_norm": 0.0,
+      "sum_abs_gap_model": 0.8147283792495728,
+      "sum_abs_total_gap": 0.8147283792495728
+    },
+    {
+      "dim": 13,
+      "label": "rot6d_3",
+      "norm_masked": false,
+      "gt_raw_p2p": 0.6366708278656006,
+      "n_chunk_positions_hard_clamped": 0,
+      "sum_abs_gap_norm": 0.0,
+      "sum_abs_gap_model": 1.0517250299453735,
+      "sum_abs_total_gap": 1.0517250299453735
+    },
+    {
+      "dim": 14,
+      "label": "rot6d_4",
+      "norm_masked": false,
+      "gt_raw_p2p": 1.3154065608978271,
+      "n_chunk_positions_hard_clamped": 0,
+      "sum_abs_gap_norm": 0.0,
+      "sum_abs_gap_model": 2.8270134925842285,
+      "sum_abs_total_gap": 2.8270134925842285
+    },
+    {
+      "dim": 15,
+      "label": "rot6d_5",
+      "norm_masked": false,
+      "gt_raw_p2p": 0.5302416086196899,
+      "n_chunk_positions_hard_clamped": 0,
+      "sum_abs_gap_norm": 0.0,
+      "sum_abs_gap_model": 1.5421409606933594,
+      "sum_abs_total_gap": 1.5421409606933594
+    },
+    {
+      "dim": 16,
+      "label": "eef_gripper",
+      "norm_masked": true,
+      "gt_raw_p2p": 2.5694258511066437e-05,
+      "n_chunk_positions_hard_clamped": 0,
+      "sum_abs_gap_norm": 1.210719347000122e-08,
+      "sum_abs_gap_model": 0.004969343543052673,
+      "sum_abs_total_gap": 0.004969337489455938
+    }
+  ],
+  "worst_dim_csvs": [
+    "scripts/ramen_chunk_delta/out/05_replay_ep166_t0025_dim01_joint_1.csv",
+    "scripts/ramen_chunk_delta/out/05_replay_ep166_t0025_dim02_joint_2.csv",
+    "scripts/ramen_chunk_delta/out/05_replay_ep166_t0025_dim05_joint_5.csv"
+  ]
+}

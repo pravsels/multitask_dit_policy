@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import torch
 import torch.nn as nn
 from lerobot.configs.types import FeatureType, PolicyFeature
 
@@ -16,6 +17,10 @@ class FakeObservationEncoder(nn.Module):
         self.vision_encoder = None
         self.conditioning_dim = 8
 
+    def encode(self, batch):
+        batch_size = batch["observation.state"].shape[0]
+        return torch.zeros(batch_size, self.conditioning_dim)
+
 
 class FakeDiffusionTransformer(nn.Module):
     def __init__(self, config, conditioning_dim: int):
@@ -25,7 +30,15 @@ class FakeDiffusionTransformer(nn.Module):
 
 class FakeObjective:
     def __init__(self, *args, **kwargs):
-        pass
+        self.horizon = kwargs["horizon"]
+        self.action_dim = kwargs["action_dim"]
+
+    def conditional_sample(self, noise_predictor, batch_size, conditioning_vec):
+        base = torch.arange(
+            batch_size * self.horizon * self.action_dim,
+            dtype=torch.float32,
+        ).reshape(batch_size, self.horizon, self.action_dim)
+        return base
 
 
 def test_get_optim_params_uses_multimodal_lr_multiplier(monkeypatch):
@@ -67,3 +80,27 @@ def test_get_optim_params_uses_multimodal_lr_multiplier(monkeypatch):
 
     assert backbone_param_ids == multimodal_param_ids
     assert projection_param_ids <= base_param_ids
+
+
+def test_generate_actions_returns_from_chunk_slot_zero(monkeypatch):
+    monkeypatch.setattr(model_module, "ObservationEncoder", FakeObservationEncoder)
+    monkeypatch.setattr(model_module, "DiffusionTransformer", FakeDiffusionTransformer)
+    monkeypatch.setattr(model_module, "DiffusionObjective", FakeObjective)
+
+    cfg = MultiTaskDiTConfig(n_obs_steps=2, horizon=6, n_action_steps=3)
+    cfg.input_features = {
+        "observation.state": PolicyFeature(type=FeatureType.STATE, shape=(3,)),
+    }
+    cfg.output_features = {
+        "action": PolicyFeature(type=FeatureType.ACTION, shape=(2,)),
+    }
+
+    policy = model_module.MultiTaskDiTPolicy(cfg, load_pretrained_backbones=False)
+
+    batch = {
+        "observation.state": torch.zeros(1, 2, 3),
+    }
+    actions = policy._generate_actions(batch)
+
+    expected = torch.tensor([[[0.0, 1.0], [2.0, 3.0], [4.0, 5.0]]])
+    assert torch.equal(actions, expected)

@@ -1,0 +1,2048 @@
+{
+  "repo_id": "villekuosmanen/bin_pick_pack_coffee_capsules",
+  "horizon": 32,
+  "single_frame_q02": -0.0395,
+  "single_frame_q98": 0.0362,
+  "saturation_ceiling_normal": 0.0757,
+  "saturation_ceiling_clamp": 0.11355000000000001,
+  "all_episodes_sorted_by_chunk_delta": [
+    {
+      "episode_id": 112,
+      "ep_start": 27477,
+      "ep_len": 248,
+      "t_peak": 216,
+      "k_peak": 7,
+      "chunk_delta_peak_signed": -0.08042401541024446,
+      "chunk_delta_peak_abs": 0.08042401541024446,
+      "single_frame_delta_peak_abs": 0.06765672704204917
+    },
+    {
+      "episode_id": 80,
+      "ep_start": 19426,
+      "ep_len": 255,
+      "t_peak": 214,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.08024145662784576,
+      "chunk_delta_peak_abs": 0.08024145662784576,
+      "single_frame_delta_peak_abs": 0.07139850407838821
+    },
+    {
+      "episode_id": 45,
+      "ep_start": 10955,
+      "ep_len": 221,
+      "t_peak": 183,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.07963246922008693,
+      "chunk_delta_peak_abs": 0.07963246922008693,
+      "single_frame_delta_peak_abs": 0.07020222465507686
+    },
+    {
+      "episode_id": 2,
+      "ep_start": 424,
+      "ep_len": 239,
+      "t_peak": 190,
+      "k_peak": 20,
+      "chunk_delta_peak_signed": -0.07928509288467467,
+      "chunk_delta_peak_abs": 0.07928509288467467,
+      "single_frame_delta_peak_abs": 0.07237922320200596
+    },
+    {
+      "episode_id": 43,
+      "ep_start": 10388,
+      "ep_len": 250,
+      "t_peak": 35,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.07923868834041059,
+      "chunk_delta_peak_abs": 0.07923868834041059,
+      "single_frame_delta_peak_abs": 0.07299188850447536
+    },
+    {
+      "episode_id": 25,
+      "ep_start": 5980,
+      "ep_len": 219,
+      "t_peak": 187,
+      "k_peak": 7,
+      "chunk_delta_peak_signed": -0.07899778615683317,
+      "chunk_delta_peak_abs": 0.07899778615683317,
+      "single_frame_delta_peak_abs": 0.07182026165537536
+    },
+    {
+      "episode_id": 22,
+      "ep_start": 5211,
+      "ep_len": 266,
+      "t_peak": 232,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.07899578381329775,
+      "chunk_delta_peak_abs": 0.07899578381329775,
+      "single_frame_delta_peak_abs": 0.0707644623471424
+    },
+    {
+      "episode_id": 27,
+      "ep_start": 6409,
+      "ep_len": 228,
+      "t_peak": 158,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.07898477045819163,
+      "chunk_delta_peak_abs": 0.07898477045819163,
+      "single_frame_delta_peak_abs": 0.06639774469658732
+    },
+    {
+      "episode_id": 21,
+      "ep_start": 4989,
+      "ep_len": 222,
+      "t_peak": 190,
+      "k_peak": 3,
+      "chunk_delta_peak_signed": -0.07852561678737402,
+      "chunk_delta_peak_abs": 0.07852561678737402,
+      "single_frame_delta_peak_abs": 0.07020989712327719
+    },
+    {
+      "episode_id": 16,
+      "ep_start": 3620,
+      "ep_len": 250,
+      "t_peak": 175,
+      "k_peak": 7,
+      "chunk_delta_peak_signed": -0.07843852345831692,
+      "chunk_delta_peak_abs": 0.07843852345831692,
+      "single_frame_delta_peak_abs": 0.06684789597056806
+    },
+    {
+      "episode_id": 11,
+      "ep_start": 2501,
+      "ep_len": 212,
+      "t_peak": 16,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.0784061235608533,
+      "chunk_delta_peak_abs": 0.0784061235608533,
+      "single_frame_delta_peak_abs": 0.07069106586277485
+    },
+    {
+      "episode_id": 4,
+      "ep_start": 857,
+      "ep_len": 230,
+      "t_peak": 160,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.07828602776862681,
+      "chunk_delta_peak_abs": 0.07828602776862681,
+      "single_frame_delta_peak_abs": 0.06899786391295493
+    },
+    {
+      "episode_id": 73,
+      "ep_start": 17698,
+      "ep_len": 193,
+      "t_peak": 160,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.07819292577914894,
+      "chunk_delta_peak_abs": 0.07819292577914894,
+      "single_frame_delta_peak_abs": 0.06794106983579695
+    },
+    {
+      "episode_id": 62,
+      "ep_start": 15092,
+      "ep_len": 193,
+      "t_peak": 23,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.07818522094748914,
+      "chunk_delta_peak_abs": 0.07818522094748914,
+      "single_frame_delta_peak_abs": 0.06670703366398811
+    },
+    {
+      "episode_id": 49,
+      "ep_start": 11940,
+      "ep_len": 247,
+      "t_peak": 215,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.07811914826743305,
+      "chunk_delta_peak_abs": 0.07811914826743305,
+      "single_frame_delta_peak_abs": 0.06788136507384479
+    },
+    {
+      "episode_id": 19,
+      "ep_start": 4442,
+      "ep_len": 264,
+      "t_peak": 189,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": -0.07809942832682282,
+      "chunk_delta_peak_abs": 0.07809942832682282,
+      "single_frame_delta_peak_abs": 0.07126870313368272
+    },
+    {
+      "episode_id": 58,
+      "ep_start": 14075,
+      "ep_len": 202,
+      "t_peak": 170,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.0779573090840131,
+      "chunk_delta_peak_abs": 0.0779573090840131,
+      "single_frame_delta_peak_abs": 0.0687472962308675
+    },
+    {
+      "episode_id": 31,
+      "ep_start": 7325,
+      "ep_len": 203,
+      "t_peak": 170,
+      "k_peak": 8,
+      "chunk_delta_peak_signed": -0.07779409689828753,
+      "chunk_delta_peak_abs": 0.07779409689828753,
+      "single_frame_delta_peak_abs": 0.06056071788771078
+    },
+    {
+      "episode_id": 17,
+      "ep_start": 3870,
+      "ep_len": 302,
+      "t_peak": 270,
+      "k_peak": 8,
+      "chunk_delta_peak_signed": -0.07752751279622316,
+      "chunk_delta_peak_abs": 0.07752751279622316,
+      "single_frame_delta_peak_abs": 0.07023292500525713
+    },
+    {
+      "episode_id": 13,
+      "ep_start": 2956,
+      "ep_len": 223,
+      "t_peak": 191,
+      "k_peak": 15,
+      "chunk_delta_peak_signed": -0.07720776880159974,
+      "chunk_delta_peak_abs": 0.07720776880159974,
+      "single_frame_delta_peak_abs": 0.06578568939585239
+    },
+    {
+      "episode_id": 8,
+      "ep_start": 1677,
+      "ep_len": 423,
+      "t_peak": 345,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.07704466278664768,
+      "chunk_delta_peak_abs": 0.07704466278664768,
+      "single_frame_delta_peak_abs": 0.06864218111149967
+    },
+    {
+      "episode_id": 40,
+      "ep_start": 9574,
+      "ep_len": 271,
+      "t_peak": 233,
+      "k_peak": 3,
+      "chunk_delta_peak_signed": -0.07695820229128003,
+      "chunk_delta_peak_abs": 0.07695820229128003,
+      "single_frame_delta_peak_abs": 0.07084491150453687
+    },
+    {
+      "episode_id": 87,
+      "ep_start": 21213,
+      "ep_len": 253,
+      "t_peak": 221,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.07682576077058911,
+      "chunk_delta_peak_abs": 0.07682576077058911,
+      "single_frame_delta_peak_abs": 0.07130640791729093
+    },
+    {
+      "episode_id": 110,
+      "ep_start": 26930,
+      "ep_len": 286,
+      "t_peak": 228,
+      "k_peak": 22,
+      "chunk_delta_peak_signed": -0.07651643012650311,
+      "chunk_delta_peak_abs": 0.07651643012650311,
+      "single_frame_delta_peak_abs": 0.04212569375522435
+    },
+    {
+      "episode_id": 162,
+      "ep_start": 39436,
+      "ep_len": 337,
+      "t_peak": 57,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.07647170219570398,
+      "chunk_delta_peak_abs": 0.07647170219570398,
+      "single_frame_delta_peak_abs": 0.061936560552567244
+    },
+    {
+      "episode_id": 14,
+      "ep_start": 3179,
+      "ep_len": 239,
+      "t_peak": 168,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.07623545895330608,
+      "chunk_delta_peak_abs": 0.07623545895330608,
+      "single_frame_delta_peak_abs": 0.06340176414232701
+    },
+    {
+      "episode_id": 51,
+      "ep_start": 12404,
+      "ep_len": 241,
+      "t_peak": 203,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.07608259189873934,
+      "chunk_delta_peak_abs": 0.07608259189873934,
+      "single_frame_delta_peak_abs": 0.06805385369807482
+    },
+    {
+      "episode_id": 74,
+      "ep_start": 17891,
+      "ep_len": 252,
+      "t_peak": 218,
+      "k_peak": 7,
+      "chunk_delta_peak_signed": -0.07584570813924074,
+      "chunk_delta_peak_abs": 0.07584570813924074,
+      "single_frame_delta_peak_abs": 0.06683688124758191
+    },
+    {
+      "episode_id": 57,
+      "ep_start": 13850,
+      "ep_len": 225,
+      "t_peak": 192,
+      "k_peak": 8,
+      "chunk_delta_peak_signed": -0.07545155240222812,
+      "chunk_delta_peak_abs": 0.07545155240222812,
+      "single_frame_delta_peak_abs": 0.06295662536285818
+    },
+    {
+      "episode_id": 48,
+      "ep_start": 11641,
+      "ep_len": 299,
+      "t_peak": 215,
+      "k_peak": 8,
+      "chunk_delta_peak_signed": -0.07455055369064212,
+      "chunk_delta_peak_abs": 0.07455055369064212,
+      "single_frame_delta_peak_abs": 0.05877608578884974
+    },
+    {
+      "episode_id": 6,
+      "ep_start": 1288,
+      "ep_len": 205,
+      "t_peak": 173,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.07442411361262202,
+      "chunk_delta_peak_abs": 0.07442411361262202,
+      "single_frame_delta_peak_abs": 0.07083356706425548
+    },
+    {
+      "episode_id": 23,
+      "ep_start": 5477,
+      "ep_len": 282,
+      "t_peak": 250,
+      "k_peak": 8,
+      "chunk_delta_peak_signed": -0.07412482798099518,
+      "chunk_delta_peak_abs": 0.07412482798099518,
+      "single_frame_delta_peak_abs": 0.07234118317137472
+    },
+    {
+      "episode_id": 15,
+      "ep_start": 3418,
+      "ep_len": 202,
+      "t_peak": 33,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.07404839037917554,
+      "chunk_delta_peak_abs": 0.07404839037917554,
+      "single_frame_delta_peak_abs": 0.06942069018259645
+    },
+    {
+      "episode_id": 0,
+      "ep_start": 0,
+      "ep_len": 214,
+      "t_peak": 29,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.07387519971234724,
+      "chunk_delta_peak_abs": 0.07387519971234724,
+      "single_frame_delta_peak_abs": 0.06776790088042617
+    },
+    {
+      "episode_id": 35,
+      "ep_start": 8328,
+      "ep_len": 224,
+      "t_peak": 191,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.07382948184385896,
+      "chunk_delta_peak_abs": 0.07382948184385896,
+      "single_frame_delta_peak_abs": 0.0626773671247065
+    },
+    {
+      "episode_id": 163,
+      "ep_start": 39773,
+      "ep_len": 217,
+      "t_peak": 41,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.07366297184489667,
+      "chunk_delta_peak_abs": 0.07366297184489667,
+      "single_frame_delta_peak_abs": 0.06573836132884026
+    },
+    {
+      "episode_id": 71,
+      "ep_start": 17244,
+      "ep_len": 197,
+      "t_peak": 165,
+      "k_peak": 8,
+      "chunk_delta_peak_signed": -0.0736566293053329,
+      "chunk_delta_peak_abs": 0.0736566293053329,
+      "single_frame_delta_peak_abs": 0.06947874603793025
+    },
+    {
+      "episode_id": 9,
+      "ep_start": 2100,
+      "ep_len": 215,
+      "t_peak": 183,
+      "k_peak": 9,
+      "chunk_delta_peak_signed": -0.07365165441296995,
+      "chunk_delta_peak_abs": 0.07365165441296995,
+      "single_frame_delta_peak_abs": 0.0686929055955261
+    },
+    {
+      "episode_id": 155,
+      "ep_start": 37820,
+      "ep_len": 239,
+      "t_peak": 207,
+      "k_peak": 7,
+      "chunk_delta_peak_signed": -0.07360186846926808,
+      "chunk_delta_peak_abs": 0.07360186846926808,
+      "single_frame_delta_peak_abs": 0.06755431406782009
+    },
+    {
+      "episode_id": 64,
+      "ep_start": 15547,
+      "ep_len": 204,
+      "t_peak": 171,
+      "k_peak": 3,
+      "chunk_delta_peak_signed": -0.07352247927337885,
+      "chunk_delta_peak_abs": 0.07352247927337885,
+      "single_frame_delta_peak_abs": 0.06798978243023157
+    },
+    {
+      "episode_id": 164,
+      "ep_start": 39990,
+      "ep_len": 198,
+      "t_peak": 165,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.07276600506156683,
+      "chunk_delta_peak_abs": 0.07276600506156683,
+      "single_frame_delta_peak_abs": 0.0629353104159236
+    },
+    {
+      "episode_id": 39,
+      "ep_start": 9270,
+      "ep_len": 304,
+      "t_peak": 223,
+      "k_peak": 16,
+      "chunk_delta_peak_signed": -0.07271054899320006,
+      "chunk_delta_peak_abs": 0.07271054899320006,
+      "single_frame_delta_peak_abs": 0.059496242087334394
+    },
+    {
+      "episode_id": 1,
+      "ep_start": 214,
+      "ep_len": 210,
+      "t_peak": 178,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.07270387327298522,
+      "chunk_delta_peak_abs": 0.07270387327298522,
+      "single_frame_delta_peak_abs": 0.06301972136134282
+    },
+    {
+      "episode_id": 111,
+      "ep_start": 27216,
+      "ep_len": 261,
+      "t_peak": 200,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": -0.07230617688037455,
+      "chunk_delta_peak_abs": 0.07230617688037455,
+      "single_frame_delta_peak_abs": 0.0655954850371927
+    },
+    {
+      "episode_id": 33,
+      "ep_start": 7797,
+      "ep_len": 289,
+      "t_peak": 36,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.07230111747048795,
+      "chunk_delta_peak_abs": 0.07230111747048795,
+      "single_frame_delta_peak_abs": 0.06502587452996522
+    },
+    {
+      "episode_id": 29,
+      "ep_start": 6830,
+      "ep_len": 265,
+      "t_peak": 193,
+      "k_peak": 3,
+      "chunk_delta_peak_signed": -0.07219205400906503,
+      "chunk_delta_peak_abs": 0.07219205400906503,
+      "single_frame_delta_peak_abs": 0.06409657350741327
+    },
+    {
+      "episode_id": 171,
+      "ep_start": 41464,
+      "ep_len": 278,
+      "t_peak": 209,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.07202087272889912,
+      "chunk_delta_peak_abs": 0.07202087272889912,
+      "single_frame_delta_peak_abs": 0.06386532564647496
+    },
+    {
+      "episode_id": 38,
+      "ep_start": 9013,
+      "ep_len": 257,
+      "t_peak": 216,
+      "k_peak": 3,
+      "chunk_delta_peak_signed": -0.07197879208251834,
+      "chunk_delta_peak_abs": 0.07197879208251834,
+      "single_frame_delta_peak_abs": 0.06382993562147021
+    },
+    {
+      "episode_id": 113,
+      "ep_start": 27725,
+      "ep_len": 240,
+      "t_peak": 204,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.07180197048000991,
+      "chunk_delta_peak_abs": 0.07180197048000991,
+      "single_frame_delta_peak_abs": 0.06464082258753479
+    },
+    {
+      "episode_id": 56,
+      "ep_start": 13574,
+      "ep_len": 276,
+      "t_peak": 232,
+      "k_peak": 23,
+      "chunk_delta_peak_signed": -0.07179423375055194,
+      "chunk_delta_peak_abs": 0.07179423375055194,
+      "single_frame_delta_peak_abs": 0.060909059131518006
+    },
+    {
+      "episode_id": 137,
+      "ep_start": 33406,
+      "ep_len": 270,
+      "t_peak": 186,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.0716204100754112,
+      "chunk_delta_peak_abs": 0.0716204100754112,
+      "single_frame_delta_peak_abs": 0.061329221120104194
+    },
+    {
+      "episode_id": 46,
+      "ep_start": 11176,
+      "ep_len": 231,
+      "t_peak": 198,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.07146123866550624,
+      "chunk_delta_peak_abs": 0.07146123866550624,
+      "single_frame_delta_peak_abs": 0.059114479226991534
+    },
+    {
+      "episode_id": 79,
+      "ep_start": 19128,
+      "ep_len": 298,
+      "t_peak": 211,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.07124066818505526,
+      "chunk_delta_peak_abs": 0.07124066818505526,
+      "single_frame_delta_peak_abs": 0.057892837561666965
+    },
+    {
+      "episode_id": 156,
+      "ep_start": 38059,
+      "ep_len": 264,
+      "t_peak": 232,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.0711922817863524,
+      "chunk_delta_peak_abs": 0.0711922817863524,
+      "single_frame_delta_peak_abs": 0.06290327617898583
+    },
+    {
+      "episode_id": 12,
+      "ep_start": 2713,
+      "ep_len": 243,
+      "t_peak": 211,
+      "k_peak": 11,
+      "chunk_delta_peak_signed": -0.07118691457435489,
+      "chunk_delta_peak_abs": 0.07118691457435489,
+      "single_frame_delta_peak_abs": 0.06345953210256994
+    },
+    {
+      "episode_id": 106,
+      "ep_start": 25986,
+      "ep_len": 253,
+      "t_peak": 50,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.07101640640757978,
+      "chunk_delta_peak_abs": 0.07101640640757978,
+      "single_frame_delta_peak_abs": 0.05617996701039374
+    },
+    {
+      "episode_id": 18,
+      "ep_start": 4172,
+      "ep_len": 270,
+      "t_peak": 204,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.07079719356261194,
+      "chunk_delta_peak_abs": 0.07079719356261194,
+      "single_frame_delta_peak_abs": 0.06222121021710336
+    },
+    {
+      "episode_id": 24,
+      "ep_start": 5759,
+      "ep_len": 221,
+      "t_peak": 187,
+      "k_peak": 3,
+      "chunk_delta_peak_signed": -0.070750473998487,
+      "chunk_delta_peak_abs": 0.070750473998487,
+      "single_frame_delta_peak_abs": 0.06116671394556761
+    },
+    {
+      "episode_id": 66,
+      "ep_start": 15943,
+      "ep_len": 255,
+      "t_peak": 188,
+      "k_peak": 3,
+      "chunk_delta_peak_signed": -0.07042045705020428,
+      "chunk_delta_peak_abs": 0.07042045705020428,
+      "single_frame_delta_peak_abs": 0.062358343973755836
+    },
+    {
+      "episode_id": 175,
+      "ep_start": 42463,
+      "ep_len": 217,
+      "t_peak": 184,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.07027159491553903,
+      "chunk_delta_peak_abs": 0.07027159491553903,
+      "single_frame_delta_peak_abs": 0.0652728364802897
+    },
+    {
+      "episode_id": 131,
+      "ep_start": 31872,
+      "ep_len": 248,
+      "t_peak": 172,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.07025394588708878,
+      "chunk_delta_peak_abs": 0.07025394588708878,
+      "single_frame_delta_peak_abs": 0.05502568185329437
+    },
+    {
+      "episode_id": 157,
+      "ep_start": 38323,
+      "ep_len": 185,
+      "t_peak": 38,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": 0.07006471406202763,
+      "chunk_delta_peak_abs": 0.07006471406202763,
+      "single_frame_delta_peak_abs": 0.0617580262478441
+    },
+    {
+      "episode_id": 34,
+      "ep_start": 8086,
+      "ep_len": 242,
+      "t_peak": 208,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.07002563728019595,
+      "chunk_delta_peak_abs": 0.07002563728019595,
+      "single_frame_delta_peak_abs": 0.059384437394328415
+    },
+    {
+      "episode_id": 69,
+      "ep_start": 16662,
+      "ep_len": 239,
+      "t_peak": 162,
+      "k_peak": 12,
+      "chunk_delta_peak_signed": -0.06975103472359478,
+      "chunk_delta_peak_abs": 0.06975103472359478,
+      "single_frame_delta_peak_abs": 0.06395807419903576
+    },
+    {
+      "episode_id": 158,
+      "ep_start": 38508,
+      "ep_len": 209,
+      "t_peak": 172,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.0697373547591269,
+      "chunk_delta_peak_abs": 0.0697373547591269,
+      "single_frame_delta_peak_abs": 0.0627764561213553
+    },
+    {
+      "episode_id": 132,
+      "ep_start": 32120,
+      "ep_len": 250,
+      "t_peak": 218,
+      "k_peak": 9,
+      "chunk_delta_peak_signed": -0.06955516315065324,
+      "chunk_delta_peak_abs": 0.06955516315065324,
+      "single_frame_delta_peak_abs": 0.057368572568520904
+    },
+    {
+      "episode_id": 96,
+      "ep_start": 23458,
+      "ep_len": 205,
+      "t_peak": 173,
+      "k_peak": 7,
+      "chunk_delta_peak_signed": -0.06944040744565427,
+      "chunk_delta_peak_abs": 0.06944040744565427,
+      "single_frame_delta_peak_abs": 0.062159097753465176
+    },
+    {
+      "episode_id": 50,
+      "ep_start": 12187,
+      "ep_len": 217,
+      "t_peak": 183,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.0694039654918015,
+      "chunk_delta_peak_abs": 0.0694039654918015,
+      "single_frame_delta_peak_abs": 0.06089906266424805
+    },
+    {
+      "episode_id": 101,
+      "ep_start": 24722,
+      "ep_len": 255,
+      "t_peak": 213,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.06936362315900624,
+      "chunk_delta_peak_abs": 0.06936362315900624,
+      "single_frame_delta_peak_abs": 0.06182210077531636
+    },
+    {
+      "episode_id": 72,
+      "ep_start": 17441,
+      "ep_len": 257,
+      "t_peak": 225,
+      "k_peak": 11,
+      "chunk_delta_peak_signed": -0.0692695511970669,
+      "chunk_delta_peak_abs": 0.0692695511970669,
+      "single_frame_delta_peak_abs": 0.061017879750579596
+    },
+    {
+      "episode_id": 77,
+      "ep_start": 18564,
+      "ep_len": 290,
+      "t_peak": 203,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.06917909346520901,
+      "chunk_delta_peak_abs": 0.06917909346520901,
+      "single_frame_delta_peak_abs": 0.0570125263184309
+    },
+    {
+      "episode_id": 61,
+      "ep_start": 14754,
+      "ep_len": 338,
+      "t_peak": 261,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.06915276497602463,
+      "chunk_delta_peak_abs": 0.06915276497602463,
+      "single_frame_delta_peak_abs": 0.0598545940592885
+    },
+    {
+      "episode_id": 75,
+      "ep_start": 18143,
+      "ep_len": 194,
+      "t_peak": 162,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.06891080527566373,
+      "chunk_delta_peak_abs": 0.06891080527566373,
+      "single_frame_delta_peak_abs": 0.059073434909805655
+    },
+    {
+      "episode_id": 52,
+      "ep_start": 12645,
+      "ep_len": 250,
+      "t_peak": 178,
+      "k_peak": 7,
+      "chunk_delta_peak_signed": -0.06879534968174994,
+      "chunk_delta_peak_abs": 0.06879534968174994,
+      "single_frame_delta_peak_abs": 0.0517034309450537
+    },
+    {
+      "episode_id": 5,
+      "ep_start": 1087,
+      "ep_len": 201,
+      "t_peak": 34,
+      "k_peak": 30,
+      "chunk_delta_peak_signed": 0.06867822795175016,
+      "chunk_delta_peak_abs": 0.06867822795175016,
+      "single_frame_delta_peak_abs": 0.07311304123140872
+    },
+    {
+      "episode_id": 32,
+      "ep_start": 7528,
+      "ep_len": 269,
+      "t_peak": 183,
+      "k_peak": 2,
+      "chunk_delta_peak_signed": -0.068607147783041,
+      "chunk_delta_peak_abs": 0.068607147783041,
+      "single_frame_delta_peak_abs": 0.06280750781297684
+    },
+    {
+      "episode_id": 10,
+      "ep_start": 2315,
+      "ep_len": 186,
+      "t_peak": 2,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.06810255174059421,
+      "chunk_delta_peak_abs": 0.06810255174059421,
+      "single_frame_delta_peak_abs": 0.07010778982657939
+    },
+    {
+      "episode_id": 97,
+      "ep_start": 23663,
+      "ep_len": 263,
+      "t_peak": 231,
+      "k_peak": 7,
+      "chunk_delta_peak_signed": -0.06809589569456875,
+      "chunk_delta_peak_abs": 0.06809589569456875,
+      "single_frame_delta_peak_abs": 0.0583986968267709
+    },
+    {
+      "episode_id": 67,
+      "ep_start": 16198,
+      "ep_len": 238,
+      "t_peak": 206,
+      "k_peak": 7,
+      "chunk_delta_peak_signed": -0.06786267645657063,
+      "chunk_delta_peak_abs": 0.06786267645657063,
+      "single_frame_delta_peak_abs": 0.06450798083096743
+    },
+    {
+      "episode_id": 146,
+      "ep_start": 35713,
+      "ep_len": 237,
+      "t_peak": 205,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.06784629309549928,
+      "chunk_delta_peak_abs": 0.06784629309549928,
+      "single_frame_delta_peak_abs": 0.062433740589767694
+    },
+    {
+      "episode_id": 182,
+      "ep_start": 43982,
+      "ep_len": 228,
+      "t_peak": 20,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.06772380706388503,
+      "chunk_delta_peak_abs": 0.06772380706388503,
+      "single_frame_delta_peak_abs": 0.06017094338312745
+    },
+    {
+      "episode_id": 133,
+      "ep_start": 32370,
+      "ep_len": 244,
+      "t_peak": 179,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.06770844815764576,
+      "chunk_delta_peak_abs": 0.06770844815764576,
+      "single_frame_delta_peak_abs": 0.06065878923982382
+    },
+    {
+      "episode_id": 99,
+      "ep_start": 24145,
+      "ep_len": 311,
+      "t_peak": 224,
+      "k_peak": 14,
+      "chunk_delta_peak_signed": -0.06753028999082744,
+      "chunk_delta_peak_abs": 0.06753028999082744,
+      "single_frame_delta_peak_abs": 0.051199209643527865
+    },
+    {
+      "episode_id": 93,
+      "ep_start": 22718,
+      "ep_len": 200,
+      "t_peak": 162,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.06743322173133492,
+      "chunk_delta_peak_abs": 0.06743322173133492,
+      "single_frame_delta_peak_abs": 0.05889724800363183
+    },
+    {
+      "episode_id": 98,
+      "ep_start": 23926,
+      "ep_len": 219,
+      "t_peak": 34,
+      "k_peak": 9,
+      "chunk_delta_peak_signed": 0.06739645637571812,
+      "chunk_delta_peak_abs": 0.06739645637571812,
+      "single_frame_delta_peak_abs": 0.058360970579087734
+    },
+    {
+      "episode_id": 60,
+      "ep_start": 14519,
+      "ep_len": 235,
+      "t_peak": 203,
+      "k_peak": 9,
+      "chunk_delta_peak_signed": -0.06736644823104143,
+      "chunk_delta_peak_abs": 0.06736644823104143,
+      "single_frame_delta_peak_abs": 0.07020285446196795
+    },
+    {
+      "episode_id": 102,
+      "ep_start": 24977,
+      "ep_len": 258,
+      "t_peak": 41,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": 0.06730969971977174,
+      "chunk_delta_peak_abs": 0.06730969971977174,
+      "single_frame_delta_peak_abs": 0.060583749786019325
+    },
+    {
+      "episode_id": 129,
+      "ep_start": 31356,
+      "ep_len": 296,
+      "t_peak": 217,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.06722166086547077,
+      "chunk_delta_peak_abs": 0.06722166086547077,
+      "single_frame_delta_peak_abs": 0.05502837966196239
+    },
+    {
+      "episode_id": 159,
+      "ep_start": 38717,
+      "ep_len": 242,
+      "t_peak": 165,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.06713619851507246,
+      "chunk_delta_peak_abs": 0.06713619851507246,
+      "single_frame_delta_peak_abs": 0.058079686015844345
+    },
+    {
+      "episode_id": 94,
+      "ep_start": 22918,
+      "ep_len": 279,
+      "t_peak": 222,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.06699708104133606,
+      "chunk_delta_peak_abs": 0.06699708104133606,
+      "single_frame_delta_peak_abs": 0.05499796778894961
+    },
+    {
+      "episode_id": 170,
+      "ep_start": 41268,
+      "ep_len": 196,
+      "t_peak": 164,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.06666802801191807,
+      "chunk_delta_peak_abs": 0.06666802801191807,
+      "single_frame_delta_peak_abs": 0.05980723910033703
+    },
+    {
+      "episode_id": 44,
+      "ep_start": 10638,
+      "ep_len": 317,
+      "t_peak": 285,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.0663937353529036,
+      "chunk_delta_peak_abs": 0.0663937353529036,
+      "single_frame_delta_peak_abs": 0.06114135542884469
+    },
+    {
+      "episode_id": 160,
+      "ep_start": 38959,
+      "ep_len": 237,
+      "t_peak": 205,
+      "k_peak": 7,
+      "chunk_delta_peak_signed": -0.06615648162551224,
+      "chunk_delta_peak_abs": 0.06615648162551224,
+      "single_frame_delta_peak_abs": 0.0585371971828863
+    },
+    {
+      "episode_id": 136,
+      "ep_start": 33169,
+      "ep_len": 237,
+      "t_peak": 39,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.06613443582318723,
+      "chunk_delta_peak_abs": 0.06613443582318723,
+      "single_frame_delta_peak_abs": 0.05033526476472616
+    },
+    {
+      "episode_id": 179,
+      "ep_start": 43329,
+      "ep_len": 217,
+      "t_peak": 151,
+      "k_peak": 2,
+      "chunk_delta_peak_signed": -0.06597959296777844,
+      "chunk_delta_peak_abs": 0.06597959296777844,
+      "single_frame_delta_peak_abs": 0.06346352817490697
+    },
+    {
+      "episode_id": 91,
+      "ep_start": 22220,
+      "ep_len": 250,
+      "t_peak": 178,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.06585716479457915,
+      "chunk_delta_peak_abs": 0.06585716479457915,
+      "single_frame_delta_peak_abs": 0.056702477973885834
+    },
+    {
+      "episode_id": 135,
+      "ep_start": 32930,
+      "ep_len": 239,
+      "t_peak": 179,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.06584214232861996,
+      "chunk_delta_peak_abs": 0.06584214232861996,
+      "single_frame_delta_peak_abs": 0.05571111477911472
+    },
+    {
+      "episode_id": 105,
+      "ep_start": 25768,
+      "ep_len": 218,
+      "t_peak": 160,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.06581544689834118,
+      "chunk_delta_peak_abs": 0.06581544689834118,
+      "single_frame_delta_peak_abs": 0.05656972201541066
+    },
+    {
+      "episode_id": 83,
+      "ep_start": 20193,
+      "ep_len": 248,
+      "t_peak": 205,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.0657643941231072,
+      "chunk_delta_peak_abs": 0.0657643941231072,
+      "single_frame_delta_peak_abs": 0.055726796854287386
+    },
+    {
+      "episode_id": 63,
+      "ep_start": 15285,
+      "ep_len": 262,
+      "t_peak": 192,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.0657443713862449,
+      "chunk_delta_peak_abs": 0.0657443713862449,
+      "single_frame_delta_peak_abs": 0.05285034445114434
+    },
+    {
+      "episode_id": 88,
+      "ep_start": 21466,
+      "ep_len": 254,
+      "t_peak": 222,
+      "k_peak": 11,
+      "chunk_delta_peak_signed": -0.06538962642662227,
+      "chunk_delta_peak_abs": 0.06538962642662227,
+      "single_frame_delta_peak_abs": 0.06230627070181072
+    },
+    {
+      "episode_id": 140,
+      "ep_start": 34172,
+      "ep_len": 254,
+      "t_peak": 37,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.06525017088279128,
+      "chunk_delta_peak_abs": 0.06525017088279128,
+      "single_frame_delta_peak_abs": 0.0557488237391226
+    },
+    {
+      "episode_id": 68,
+      "ep_start": 16436,
+      "ep_len": 226,
+      "t_peak": 194,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.06518840929493308,
+      "chunk_delta_peak_abs": 0.06518840929493308,
+      "single_frame_delta_peak_abs": 0.06107059633359313
+    },
+    {
+      "episode_id": 53,
+      "ep_start": 12895,
+      "ep_len": 209,
+      "t_peak": 27,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.06500389217399061,
+      "chunk_delta_peak_abs": 0.06500389217399061,
+      "single_frame_delta_peak_abs": 0.05785342678427696
+    },
+    {
+      "episode_id": 118,
+      "ep_start": 28842,
+      "ep_len": 193,
+      "t_peak": 160,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.06496316869743168,
+      "chunk_delta_peak_abs": 0.06496316869743168,
+      "single_frame_delta_peak_abs": 0.05435829539783299
+    },
+    {
+      "episode_id": 54,
+      "ep_start": 13104,
+      "ep_len": 194,
+      "t_peak": 159,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.06476595671847463,
+      "chunk_delta_peak_abs": 0.06476595671847463,
+      "single_frame_delta_peak_abs": 0.05617661448195577
+    },
+    {
+      "episode_id": 81,
+      "ep_start": 19681,
+      "ep_len": 238,
+      "t_peak": 206,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.06465487298555672,
+      "chunk_delta_peak_abs": 0.06465487298555672,
+      "single_frame_delta_peak_abs": 0.05773399886675179
+    },
+    {
+      "episode_id": 126,
+      "ep_start": 30637,
+      "ep_len": 222,
+      "t_peak": 190,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.0646187704987824,
+      "chunk_delta_peak_abs": 0.0646187704987824,
+      "single_frame_delta_peak_abs": 0.05492790990683716
+    },
+    {
+      "episode_id": 169,
+      "ep_start": 41090,
+      "ep_len": 178,
+      "t_peak": 146,
+      "k_peak": 3,
+      "chunk_delta_peak_signed": -0.06460712105035782,
+      "chunk_delta_peak_abs": 0.06460712105035782,
+      "single_frame_delta_peak_abs": 0.05998207628726959
+    },
+    {
+      "episode_id": 194,
+      "ep_start": 46480,
+      "ep_len": 276,
+      "t_peak": 60,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.06423300295136869,
+      "chunk_delta_peak_abs": 0.06423300295136869,
+      "single_frame_delta_peak_abs": 0.054129018215462565
+    },
+    {
+      "episode_id": 100,
+      "ep_start": 24456,
+      "ep_len": 266,
+      "t_peak": 68,
+      "k_peak": 23,
+      "chunk_delta_peak_signed": 0.06386261945590377,
+      "chunk_delta_peak_abs": 0.06386261945590377,
+      "single_frame_delta_peak_abs": 0.05673824716359377
+    },
+    {
+      "episode_id": 134,
+      "ep_start": 32614,
+      "ep_len": 316,
+      "t_peak": 255,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": -0.06374586396850646,
+      "chunk_delta_peak_abs": 0.06374586396850646,
+      "single_frame_delta_peak_abs": 0.04750686674378812
+    },
+    {
+      "episode_id": 70,
+      "ep_start": 16901,
+      "ep_len": 343,
+      "t_peak": 43,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.0635906436946243,
+      "chunk_delta_peak_abs": 0.0635906436946243,
+      "single_frame_delta_peak_abs": 0.05833762604743242
+    },
+    {
+      "episode_id": 127,
+      "ep_start": 30859,
+      "ep_len": 250,
+      "t_peak": 183,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.0634789103642106,
+      "chunk_delta_peak_abs": 0.0634789103642106,
+      "single_frame_delta_peak_abs": 0.05750573892146349
+    },
+    {
+      "episode_id": 144,
+      "ep_start": 35185,
+      "ep_len": 289,
+      "t_peak": 223,
+      "k_peak": 8,
+      "chunk_delta_peak_signed": -0.0633860812522471,
+      "chunk_delta_peak_abs": 0.0633860812522471,
+      "single_frame_delta_peak_abs": 0.04668859113007784
+    },
+    {
+      "episode_id": 124,
+      "ep_start": 30176,
+      "ep_len": 227,
+      "t_peak": 195,
+      "k_peak": 9,
+      "chunk_delta_peak_signed": -0.06325632403604686,
+      "chunk_delta_peak_abs": 0.06325632403604686,
+      "single_frame_delta_peak_abs": 0.052602350478991866
+    },
+    {
+      "episode_id": 82,
+      "ep_start": 19919,
+      "ep_len": 274,
+      "t_peak": 223,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.06319792731665075,
+      "chunk_delta_peak_abs": 0.06319792731665075,
+      "single_frame_delta_peak_abs": 0.05071100010536611
+    },
+    {
+      "episode_id": 193,
+      "ep_start": 46227,
+      "ep_len": 253,
+      "t_peak": 176,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.0629092997405678,
+      "chunk_delta_peak_abs": 0.0629092997405678,
+      "single_frame_delta_peak_abs": 0.055309332674369216
+    },
+    {
+      "episode_id": 150,
+      "ep_start": 36663,
+      "ep_len": 240,
+      "t_peak": 208,
+      "k_peak": 15,
+      "chunk_delta_peak_signed": -0.06273342948406935,
+      "chunk_delta_peak_abs": 0.06273342948406935,
+      "single_frame_delta_peak_abs": 0.06090405397117138
+    },
+    {
+      "episode_id": 90,
+      "ep_start": 21947,
+      "ep_len": 273,
+      "t_peak": 208,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.06271000625565648,
+      "chunk_delta_peak_abs": 0.06271000625565648,
+      "single_frame_delta_peak_abs": 0.051597919780761003
+    },
+    {
+      "episode_id": 47,
+      "ep_start": 11407,
+      "ep_len": 234,
+      "t_peak": 197,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.06270433170720935,
+      "chunk_delta_peak_abs": 0.06270433170720935,
+      "single_frame_delta_peak_abs": 0.05164804321248084
+    },
+    {
+      "episode_id": 108,
+      "ep_start": 26475,
+      "ep_len": 222,
+      "t_peak": 190,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.06265899678692222,
+      "chunk_delta_peak_abs": 0.06265899678692222,
+      "single_frame_delta_peak_abs": 0.05940879648551345
+    },
+    {
+      "episode_id": 26,
+      "ep_start": 6199,
+      "ep_len": 210,
+      "t_peak": 40,
+      "k_peak": 14,
+      "chunk_delta_peak_signed": 0.06257522274972871,
+      "chunk_delta_peak_abs": 0.06257522274972871,
+      "single_frame_delta_peak_abs": 0.060793314361944795
+    },
+    {
+      "episode_id": 78,
+      "ep_start": 18854,
+      "ep_len": 274,
+      "t_peak": 33,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.06246010004542768,
+      "chunk_delta_peak_abs": 0.06246010004542768,
+      "single_frame_delta_peak_abs": 0.05634679365903139
+    },
+    {
+      "episode_id": 166,
+      "ep_start": 40387,
+      "ep_len": 240,
+      "t_peak": 208,
+      "k_peak": 9,
+      "chunk_delta_peak_signed": -0.06225725240074098,
+      "chunk_delta_peak_abs": 0.06225725240074098,
+      "single_frame_delta_peak_abs": 0.061203040881082416
+    },
+    {
+      "episode_id": 180,
+      "ep_start": 43546,
+      "ep_len": 243,
+      "t_peak": 58,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.06216680025681853,
+      "chunk_delta_peak_abs": 0.06216680025681853,
+      "single_frame_delta_peak_abs": 0.056315429508686066
+    },
+    {
+      "episode_id": 20,
+      "ep_start": 4706,
+      "ep_len": 283,
+      "t_peak": 251,
+      "k_peak": 12,
+      "chunk_delta_peak_signed": -0.06209873012267053,
+      "chunk_delta_peak_abs": 0.06209873012267053,
+      "single_frame_delta_peak_abs": 0.06598963937722147
+    },
+    {
+      "episode_id": 37,
+      "ep_start": 8752,
+      "ep_len": 261,
+      "t_peak": 229,
+      "k_peak": 10,
+      "chunk_delta_peak_signed": -0.06202166364528239,
+      "chunk_delta_peak_abs": 0.06202166364528239,
+      "single_frame_delta_peak_abs": 0.06526015739655122
+    },
+    {
+      "episode_id": 86,
+      "ep_start": 20921,
+      "ep_len": 292,
+      "t_peak": 228,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.06196525297127664,
+      "chunk_delta_peak_abs": 0.06196525297127664,
+      "single_frame_delta_peak_abs": 0.051387075101956725
+    },
+    {
+      "episode_id": 188,
+      "ep_start": 45271,
+      "ep_len": 213,
+      "t_peak": 181,
+      "k_peak": 10,
+      "chunk_delta_peak_signed": -0.061920873587951064,
+      "chunk_delta_peak_abs": 0.061920873587951064,
+      "single_frame_delta_peak_abs": 0.05807002610526979
+    },
+    {
+      "episode_id": 109,
+      "ep_start": 26697,
+      "ep_len": 233,
+      "t_peak": 172,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.061759367818012834,
+      "chunk_delta_peak_abs": 0.061759367818012834,
+      "single_frame_delta_peak_abs": 0.05671319115208462
+    },
+    {
+      "episode_id": 76,
+      "ep_start": 18337,
+      "ep_len": 227,
+      "t_peak": 195,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.061741365352645516,
+      "chunk_delta_peak_abs": 0.061741365352645516,
+      "single_frame_delta_peak_abs": 0.05510676897392841
+    },
+    {
+      "episode_id": 59,
+      "ep_start": 14277,
+      "ep_len": 242,
+      "t_peak": 176,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.06169596500694752,
+      "chunk_delta_peak_abs": 0.06169596500694752,
+      "single_frame_delta_peak_abs": 0.054151374846696854
+    },
+    {
+      "episode_id": 141,
+      "ep_start": 34426,
+      "ep_len": 291,
+      "t_peak": 259,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.061229114420711994,
+      "chunk_delta_peak_abs": 0.061229114420711994,
+      "single_frame_delta_peak_abs": 0.05756512004882097
+    },
+    {
+      "episode_id": 36,
+      "ep_start": 8552,
+      "ep_len": 200,
+      "t_peak": 168,
+      "k_peak": 12,
+      "chunk_delta_peak_signed": -0.0611713866237551,
+      "chunk_delta_peak_abs": 0.0611713866237551,
+      "single_frame_delta_peak_abs": 0.07411878951825202
+    },
+    {
+      "episode_id": 121,
+      "ep_start": 29519,
+      "ep_len": 195,
+      "t_peak": 163,
+      "k_peak": 20,
+      "chunk_delta_peak_signed": -0.06106455763801932,
+      "chunk_delta_peak_abs": 0.06106455763801932,
+      "single_frame_delta_peak_abs": 0.055956327938474715
+    },
+    {
+      "episode_id": 120,
+      "ep_start": 29259,
+      "ep_len": 260,
+      "t_peak": 228,
+      "k_peak": 8,
+      "chunk_delta_peak_signed": -0.060867394087836146,
+      "chunk_delta_peak_abs": 0.060867394087836146,
+      "single_frame_delta_peak_abs": 0.052444911329075694
+    },
+    {
+      "episode_id": 28,
+      "ep_start": 6637,
+      "ep_len": 193,
+      "t_peak": 126,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.06076894700527191,
+      "chunk_delta_peak_abs": 0.06076894700527191,
+      "single_frame_delta_peak_abs": 0.07181262079393491
+    },
+    {
+      "episode_id": 7,
+      "ep_start": 1493,
+      "ep_len": 184,
+      "t_peak": 152,
+      "k_peak": 12,
+      "chunk_delta_peak_signed": -0.06064777867868543,
+      "chunk_delta_peak_abs": 0.06064777867868543,
+      "single_frame_delta_peak_abs": 0.05975015228614211
+    },
+    {
+      "episode_id": 172,
+      "ep_start": 41742,
+      "ep_len": 259,
+      "t_peak": 227,
+      "k_peak": 9,
+      "chunk_delta_peak_signed": -0.06064079934731126,
+      "chunk_delta_peak_abs": 0.06064079934731126,
+      "single_frame_delta_peak_abs": 0.053419622126966715
+    },
+    {
+      "episode_id": 42,
+      "ep_start": 10044,
+      "ep_len": 344,
+      "t_peak": 262,
+      "k_peak": 12,
+      "chunk_delta_peak_signed": -0.060609118081629276,
+      "chunk_delta_peak_abs": 0.060609118081629276,
+      "single_frame_delta_peak_abs": 0.04085094854235649
+    },
+    {
+      "episode_id": 117,
+      "ep_start": 28656,
+      "ep_len": 186,
+      "t_peak": 32,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": 0.06003143062116578,
+      "chunk_delta_peak_abs": 0.06003143062116578,
+      "single_frame_delta_peak_abs": 0.05404225643724203
+    },
+    {
+      "episode_id": 152,
+      "ep_start": 37084,
+      "ep_len": 207,
+      "t_peak": 34,
+      "k_peak": 20,
+      "chunk_delta_peak_signed": 0.059787837555631995,
+      "chunk_delta_peak_abs": 0.059787837555631995,
+      "single_frame_delta_peak_abs": 0.05465927068144083
+    },
+    {
+      "episode_id": 114,
+      "ep_start": 27965,
+      "ep_len": 281,
+      "t_peak": 208,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.05966842616908252,
+      "chunk_delta_peak_abs": 0.05966842616908252,
+      "single_frame_delta_peak_abs": 0.04711476038210094
+    },
+    {
+      "episode_id": 55,
+      "ep_start": 13298,
+      "ep_len": 276,
+      "t_peak": 203,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.05940480879507959,
+      "chunk_delta_peak_abs": 0.05940480879507959,
+      "single_frame_delta_peak_abs": 0.04999456531368196
+    },
+    {
+      "episode_id": 176,
+      "ep_start": 42680,
+      "ep_len": 201,
+      "t_peak": 169,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.059381416998803616,
+      "chunk_delta_peak_abs": 0.059381416998803616,
+      "single_frame_delta_peak_abs": 0.061256795190274715
+    },
+    {
+      "episode_id": 104,
+      "ep_start": 25518,
+      "ep_len": 250,
+      "t_peak": 218,
+      "k_peak": 12,
+      "chunk_delta_peak_signed": -0.059174545109272,
+      "chunk_delta_peak_abs": 0.059174545109272,
+      "single_frame_delta_peak_abs": 0.0583336278796196
+    },
+    {
+      "episode_id": 192,
+      "ep_start": 46010,
+      "ep_len": 217,
+      "t_peak": 157,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.05896794283762574,
+      "chunk_delta_peak_abs": 0.05896794283762574,
+      "single_frame_delta_peak_abs": 0.05142074660398066
+    },
+    {
+      "episode_id": 199,
+      "ep_start": 47569,
+      "ep_len": 296,
+      "t_peak": 206,
+      "k_peak": 3,
+      "chunk_delta_peak_signed": -0.0589079272467643,
+      "chunk_delta_peak_abs": 0.0589079272467643,
+      "single_frame_delta_peak_abs": 0.05337524157948792
+    },
+    {
+      "episode_id": 190,
+      "ep_start": 45675,
+      "ep_len": 177,
+      "t_peak": 145,
+      "k_peak": 10,
+      "chunk_delta_peak_signed": -0.05883586313575506,
+      "chunk_delta_peak_abs": 0.05883586313575506,
+      "single_frame_delta_peak_abs": 0.059278277680277824
+    },
+    {
+      "episode_id": 149,
+      "ep_start": 36428,
+      "ep_len": 235,
+      "t_peak": 163,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.058610226144082844,
+      "chunk_delta_peak_abs": 0.058610226144082844,
+      "single_frame_delta_peak_abs": 0.05036363139515743
+    },
+    {
+      "episode_id": 95,
+      "ep_start": 23197,
+      "ep_len": 261,
+      "t_peak": 229,
+      "k_peak": 15,
+      "chunk_delta_peak_signed": -0.058540196157991886,
+      "chunk_delta_peak_abs": 0.058540196157991886,
+      "single_frame_delta_peak_abs": 0.056222648767288774
+    },
+    {
+      "episode_id": 143,
+      "ep_start": 34941,
+      "ep_len": 244,
+      "t_peak": 203,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.058477129554376006,
+      "chunk_delta_peak_abs": 0.058477129554376006,
+      "single_frame_delta_peak_abs": 0.053271464770659804
+    },
+    {
+      "episode_id": 122,
+      "ep_start": 29714,
+      "ep_len": 253,
+      "t_peak": 221,
+      "k_peak": 8,
+      "chunk_delta_peak_signed": -0.058287927182391286,
+      "chunk_delta_peak_abs": 0.058287927182391286,
+      "single_frame_delta_peak_abs": 0.05237181903794408
+    },
+    {
+      "episode_id": 183,
+      "ep_start": 44210,
+      "ep_len": 205,
+      "t_peak": 150,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.05827558063901961,
+      "chunk_delta_peak_abs": 0.05827558063901961,
+      "single_frame_delta_peak_abs": 0.04924608126748353
+    },
+    {
+      "episode_id": 128,
+      "ep_start": 31109,
+      "ep_len": 247,
+      "t_peak": 182,
+      "k_peak": 3,
+      "chunk_delta_peak_signed": -0.05799094098620117,
+      "chunk_delta_peak_abs": 0.05799094098620117,
+      "single_frame_delta_peak_abs": 0.05295879649929702
+    },
+    {
+      "episode_id": 85,
+      "ep_start": 20674,
+      "ep_len": 247,
+      "t_peak": 209,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.057965246960520744,
+      "chunk_delta_peak_abs": 0.057965246960520744,
+      "single_frame_delta_peak_abs": 0.04921835591085255
+    },
+    {
+      "episode_id": 123,
+      "ep_start": 29967,
+      "ep_len": 209,
+      "t_peak": 169,
+      "k_peak": 7,
+      "chunk_delta_peak_signed": -0.057943161111325026,
+      "chunk_delta_peak_abs": 0.057943161111325026,
+      "single_frame_delta_peak_abs": 0.04661354352720082
+    },
+    {
+      "episode_id": 138,
+      "ep_start": 33676,
+      "ep_len": 226,
+      "t_peak": 194,
+      "k_peak": 12,
+      "chunk_delta_peak_signed": -0.057653579860925674,
+      "chunk_delta_peak_abs": 0.057653579860925674,
+      "single_frame_delta_peak_abs": 0.051525510381907225
+    },
+    {
+      "episode_id": 116,
+      "ep_start": 28464,
+      "ep_len": 192,
+      "t_peak": 160,
+      "k_peak": 10,
+      "chunk_delta_peak_signed": -0.057626884430646896,
+      "chunk_delta_peak_abs": 0.057626884430646896,
+      "single_frame_delta_peak_abs": 0.0516139545943588
+    },
+    {
+      "episode_id": 154,
+      "ep_start": 37505,
+      "ep_len": 315,
+      "t_peak": 247,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.05707394168712199,
+      "chunk_delta_peak_abs": 0.05707394168712199,
+      "single_frame_delta_peak_abs": 0.050620252499356866
+    },
+    {
+      "episode_id": 119,
+      "ep_start": 29035,
+      "ep_len": 224,
+      "t_peak": 160,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.05679964763112366,
+      "chunk_delta_peak_abs": 0.05679964763112366,
+      "single_frame_delta_peak_abs": 0.04896446061320603
+    },
+    {
+      "episode_id": 3,
+      "ep_start": 663,
+      "ep_len": 194,
+      "t_peak": 50,
+      "k_peak": 16,
+      "chunk_delta_peak_signed": 0.056755916913971305,
+      "chunk_delta_peak_abs": 0.056755916913971305,
+      "single_frame_delta_peak_abs": 0.06649611378088593
+    },
+    {
+      "episode_id": 103,
+      "ep_start": 25235,
+      "ep_len": 283,
+      "t_peak": 38,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.056531343318056315,
+      "chunk_delta_peak_abs": 0.056531343318056315,
+      "single_frame_delta_peak_abs": 0.04877320781815797
+    },
+    {
+      "episode_id": 148,
+      "ep_start": 36174,
+      "ep_len": 254,
+      "t_peak": 214,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.05641154712066054,
+      "chunk_delta_peak_abs": 0.05641154712066054,
+      "single_frame_delta_peak_abs": 0.04547965666279197
+    },
+    {
+      "episode_id": 184,
+      "ep_start": 44415,
+      "ep_len": 228,
+      "t_peak": 196,
+      "k_peak": 9,
+      "chunk_delta_peak_signed": -0.05635882541537285,
+      "chunk_delta_peak_abs": 0.05635882541537285,
+      "single_frame_delta_peak_abs": 0.052305413177236915
+    },
+    {
+      "episode_id": 30,
+      "ep_start": 7095,
+      "ep_len": 230,
+      "t_peak": 46,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.056242035469040275,
+      "chunk_delta_peak_abs": 0.056242035469040275,
+      "single_frame_delta_peak_abs": 0.06277976394630969
+    },
+    {
+      "episode_id": 189,
+      "ep_start": 45484,
+      "ep_len": 191,
+      "t_peak": 159,
+      "k_peak": 13,
+      "chunk_delta_peak_signed": -0.05614386452361941,
+      "chunk_delta_peak_abs": 0.05614386452361941,
+      "single_frame_delta_peak_abs": 0.05824516818393022
+    },
+    {
+      "episode_id": 107,
+      "ep_start": 26239,
+      "ep_len": 236,
+      "t_peak": 200,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.05612722458317876,
+      "chunk_delta_peak_abs": 0.05612722458317876,
+      "single_frame_delta_peak_abs": 0.05194267304614186
+    },
+    {
+      "episode_id": 185,
+      "ep_start": 44643,
+      "ep_len": 225,
+      "t_peak": 193,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.05534573667682707,
+      "chunk_delta_peak_abs": 0.05534573667682707,
+      "single_frame_delta_peak_abs": 0.05152824544347823
+    },
+    {
+      "episode_id": 151,
+      "ep_start": 36903,
+      "ep_len": 181,
+      "t_peak": 149,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.05534106702543795,
+      "chunk_delta_peak_abs": 0.05534106702543795,
+      "single_frame_delta_peak_abs": 0.04688618425279856
+    },
+    {
+      "episode_id": 130,
+      "ep_start": 31652,
+      "ep_len": 220,
+      "t_peak": 188,
+      "k_peak": 21,
+      "chunk_delta_peak_signed": -0.05497225793078542,
+      "chunk_delta_peak_abs": 0.05497225793078542,
+      "single_frame_delta_peak_abs": 0.05988060461822897
+    },
+    {
+      "episode_id": 168,
+      "ep_start": 40845,
+      "ep_len": 245,
+      "t_peak": 180,
+      "k_peak": 7,
+      "chunk_delta_peak_signed": -0.0547577568795532,
+      "chunk_delta_peak_abs": 0.0547577568795532,
+      "single_frame_delta_peak_abs": 0.04068074724636972
+    },
+    {
+      "episode_id": 65,
+      "ep_start": 15751,
+      "ep_len": 192,
+      "t_peak": 44,
+      "k_peak": 10,
+      "chunk_delta_peak_signed": 0.054745029425248504,
+      "chunk_delta_peak_abs": 0.054745029425248504,
+      "single_frame_delta_peak_abs": 0.05490056122653186
+    },
+    {
+      "episode_id": 181,
+      "ep_start": 43789,
+      "ep_len": 193,
+      "t_peak": 161,
+      "k_peak": 8,
+      "chunk_delta_peak_signed": -0.0545268259011209,
+      "chunk_delta_peak_abs": 0.0545268259011209,
+      "single_frame_delta_peak_abs": 0.05391951045021415
+    },
+    {
+      "episode_id": 174,
+      "ep_start": 42243,
+      "ep_len": 220,
+      "t_peak": 183,
+      "k_peak": 3,
+      "chunk_delta_peak_signed": -0.054504154017195106,
+      "chunk_delta_peak_abs": 0.054504154017195106,
+      "single_frame_delta_peak_abs": 0.04919837950728834
+    },
+    {
+      "episode_id": 197,
+      "ep_start": 47165,
+      "ep_len": 216,
+      "t_peak": 184,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.05422083358280361,
+      "chunk_delta_peak_abs": 0.05422083358280361,
+      "single_frame_delta_peak_abs": 0.0544744364451617
+    },
+    {
+      "episode_id": 173,
+      "ep_start": 42001,
+      "ep_len": 242,
+      "t_peak": 210,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.054187462432309985,
+      "chunk_delta_peak_abs": 0.054187462432309985,
+      "single_frame_delta_peak_abs": 0.051871613366529346
+    },
+    {
+      "episode_id": 89,
+      "ep_start": 21720,
+      "ep_len": 227,
+      "t_peak": 150,
+      "k_peak": 8,
+      "chunk_delta_peak_signed": -0.0539671634323895,
+      "chunk_delta_peak_abs": 0.0539671634323895,
+      "single_frame_delta_peak_abs": 0.04427163116633892
+    },
+    {
+      "episode_id": 165,
+      "ep_start": 40188,
+      "ep_len": 199,
+      "t_peak": 143,
+      "k_peak": 2,
+      "chunk_delta_peak_signed": -0.05383907211944461,
+      "chunk_delta_peak_abs": 0.05383907211944461,
+      "single_frame_delta_peak_abs": 0.050488762091845274
+    },
+    {
+      "episode_id": 84,
+      "ep_start": 20441,
+      "ep_len": 233,
+      "t_peak": 193,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.0538013163022697,
+      "chunk_delta_peak_abs": 0.0538013163022697,
+      "single_frame_delta_peak_abs": 0.0461466743145138
+    },
+    {
+      "episode_id": 125,
+      "ep_start": 30403,
+      "ep_len": 234,
+      "t_peak": 202,
+      "k_peak": 11,
+      "chunk_delta_peak_signed": -0.0536839219275862,
+      "chunk_delta_peak_abs": 0.0536839219275862,
+      "single_frame_delta_peak_abs": 0.05487149837426841
+    },
+    {
+      "episode_id": 153,
+      "ep_start": 37291,
+      "ep_len": 214,
+      "t_peak": 179,
+      "k_peak": 3,
+      "chunk_delta_peak_signed": -0.053184369346126914,
+      "chunk_delta_peak_abs": 0.053184369346126914,
+      "single_frame_delta_peak_abs": 0.04506219341419637
+    },
+    {
+      "episode_id": 195,
+      "ep_start": 46756,
+      "ep_len": 239,
+      "t_peak": 207,
+      "k_peak": 11,
+      "chunk_delta_peak_signed": -0.05179813550785184,
+      "chunk_delta_peak_abs": 0.05179813550785184,
+      "single_frame_delta_peak_abs": 0.054517118784133345
+    },
+    {
+      "episode_id": 142,
+      "ep_start": 34717,
+      "ep_len": 224,
+      "t_peak": 192,
+      "k_peak": 11,
+      "chunk_delta_peak_signed": -0.05171337956562638,
+      "chunk_delta_peak_abs": 0.05171337956562638,
+      "single_frame_delta_peak_abs": 0.043733702856116
+    },
+    {
+      "episode_id": 41,
+      "ep_start": 9845,
+      "ep_len": 199,
+      "t_peak": 167,
+      "k_peak": 7,
+      "chunk_delta_peak_signed": -0.051557259634137154,
+      "chunk_delta_peak_abs": 0.051557259634137154,
+      "single_frame_delta_peak_abs": 0.047526219859719276
+    },
+    {
+      "episode_id": 177,
+      "ep_start": 42881,
+      "ep_len": 211,
+      "t_peak": 38,
+      "k_peak": 14,
+      "chunk_delta_peak_signed": 0.05153986229561269,
+      "chunk_delta_peak_abs": 0.05153986229561269,
+      "single_frame_delta_peak_abs": 0.04827532568015158
+    },
+    {
+      "episode_id": 161,
+      "ep_start": 39196,
+      "ep_len": 240,
+      "t_peak": 208,
+      "k_peak": 10,
+      "chunk_delta_peak_signed": -0.05125328153371811,
+      "chunk_delta_peak_abs": 0.05125328153371811,
+      "single_frame_delta_peak_abs": 0.04730725660920143
+    },
+    {
+      "episode_id": 92,
+      "ep_start": 22470,
+      "ep_len": 248,
+      "t_peak": 216,
+      "k_peak": 6,
+      "chunk_delta_peak_signed": -0.05019077495671809,
+      "chunk_delta_peak_abs": 0.05019077495671809,
+      "single_frame_delta_peak_abs": 0.049823699751868844
+    },
+    {
+      "episode_id": 187,
+      "ep_start": 45063,
+      "ep_len": 208,
+      "t_peak": 146,
+      "k_peak": 11,
+      "chunk_delta_peak_signed": -0.05004663788713515,
+      "chunk_delta_peak_abs": 0.05004663788713515,
+      "single_frame_delta_peak_abs": 0.04629249731078744
+    },
+    {
+      "episode_id": 145,
+      "ep_start": 35474,
+      "ep_len": 239,
+      "t_peak": 203,
+      "k_peak": 10,
+      "chunk_delta_peak_signed": -0.0497466332744807,
+      "chunk_delta_peak_abs": 0.0497466332744807,
+      "single_frame_delta_peak_abs": 0.04020487086381763
+    },
+    {
+      "episode_id": 186,
+      "ep_start": 44868,
+      "ep_len": 195,
+      "t_peak": 34,
+      "k_peak": 17,
+      "chunk_delta_peak_signed": 0.04947097768308595,
+      "chunk_delta_peak_abs": 0.04947097768308595,
+      "single_frame_delta_peak_abs": 0.04113391670398414
+    },
+    {
+      "episode_id": 147,
+      "ep_start": 35950,
+      "ep_len": 224,
+      "t_peak": 184,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.04883330222219229,
+      "chunk_delta_peak_abs": 0.04883330222219229,
+      "single_frame_delta_peak_abs": 0.0442750146612525
+    },
+    {
+      "episode_id": 167,
+      "ep_start": 40627,
+      "ep_len": 218,
+      "t_peak": 186,
+      "k_peak": 18,
+      "chunk_delta_peak_signed": -0.04843848245218396,
+      "chunk_delta_peak_abs": 0.04843848245218396,
+      "single_frame_delta_peak_abs": 0.04559610166325001
+    },
+    {
+      "episode_id": 139,
+      "ep_start": 33902,
+      "ep_len": 270,
+      "t_peak": 175,
+      "k_peak": 2,
+      "chunk_delta_peak_signed": -0.048416174948215485,
+      "chunk_delta_peak_abs": 0.048416174948215485,
+      "single_frame_delta_peak_abs": 0.046687617897987366
+    },
+    {
+      "episode_id": 115,
+      "ep_start": 28246,
+      "ep_len": 218,
+      "t_peak": 56,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.04830239131115377,
+      "chunk_delta_peak_abs": 0.04830239131115377,
+      "single_frame_delta_peak_abs": 0.05871371878311038
+    },
+    {
+      "episode_id": 196,
+      "ep_start": 46995,
+      "ep_len": 170,
+      "t_peak": 138,
+      "k_peak": 8,
+      "chunk_delta_peak_signed": -0.048243672819808125,
+      "chunk_delta_peak_abs": 0.048243672819808125,
+      "single_frame_delta_peak_abs": 0.047769830795004964
+    },
+    {
+      "episode_id": 178,
+      "ep_start": 43092,
+      "ep_len": 237,
+      "t_peak": 205,
+      "k_peak": 7,
+      "chunk_delta_peak_signed": -0.0473176462110132,
+      "chunk_delta_peak_abs": 0.0473176462110132,
+      "single_frame_delta_peak_abs": 0.053617819910869
+    },
+    {
+      "episode_id": 191,
+      "ep_start": 45852,
+      "ep_len": 158,
+      "t_peak": 126,
+      "k_peak": 11,
+      "chunk_delta_peak_signed": -0.046967222820967436,
+      "chunk_delta_peak_abs": 0.046967222820967436,
+      "single_frame_delta_peak_abs": 0.052944096620194614
+    },
+    {
+      "episode_id": 198,
+      "ep_start": 47381,
+      "ep_len": 188,
+      "t_peak": 124,
+      "k_peak": 31,
+      "chunk_delta_peak_signed": 0.04571625031530857,
+      "chunk_delta_peak_abs": 0.04571625031530857,
+      "single_frame_delta_peak_abs": 0.06270673335529864
+    }
+  ],
+  "top_3": [
+    {
+      "episode_id": 112,
+      "ep_start": 27477,
+      "ep_len": 248,
+      "t_peak": 216,
+      "k_peak": 7,
+      "chunk_delta_peak_signed": -0.08042401541024446,
+      "chunk_delta_peak_abs": 0.08042401541024446,
+      "single_frame_delta_peak_abs": 0.06765672704204917
+    },
+    {
+      "episode_id": 80,
+      "ep_start": 19426,
+      "ep_len": 255,
+      "t_peak": 214,
+      "k_peak": 4,
+      "chunk_delta_peak_signed": -0.08024145662784576,
+      "chunk_delta_peak_abs": 0.08024145662784576,
+      "single_frame_delta_peak_abs": 0.07139850407838821
+    },
+    {
+      "episode_id": 45,
+      "ep_start": 10955,
+      "ep_len": 221,
+      "t_peak": 183,
+      "k_peak": 5,
+      "chunk_delta_peak_signed": -0.07963246922008693,
+      "chunk_delta_peak_abs": 0.07963246922008693,
+      "single_frame_delta_peak_abs": 0.07020222465507686
+    }
+  ],
+  "dataset_percentiles": {
+    "single_frame_q02": -0.03953602815046907,
+    "single_frame_q98": 0.03620613289996982,
+    "chunk_q02": -0.06066879956051707,
+    "chunk_q98": 0.0576839130371809
+  }
+}

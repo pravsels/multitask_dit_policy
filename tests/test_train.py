@@ -112,6 +112,15 @@ def test_unwrap_model_returns_inner_module_when_present():
     assert train_module.unwrap_model("policy") == "policy"
 
 
+def test_config_action_delta_indices_start_at_current_action():
+    from multitask_dit_policy.utils.configuration import MultiTaskDiTConfig
+
+    cfg = MultiTaskDiTConfig(n_obs_steps=2, horizon=4, n_action_steps=4)
+
+    assert cfg.observation_delta_indices == [-1, 0]
+    assert cfg.action_delta_indices == [0, 1, 2, 3]
+
+
 def test_load_or_compute_ramen_stats_main_rank_computes_before_barrier(monkeypatch, tmp_path):
     calls = []
     runtime_context = train_module.RuntimeContext(
@@ -138,9 +147,11 @@ def test_load_or_compute_ramen_stats_main_rank_computes_before_barrier(monkeypat
         dataset=[],
         schema=DatasetSchema(),
         norm_mask=torch.ones(1, dtype=torch.bool),
-        cache_path=tmp_path / "ramen_stats.pt",
+        cache_path=tmp_path / "ramen_stats.json",
         device="cuda:0",
         runtime_context=runtime_context,
+        horizon=8,
+        n_obs_steps=2,
     )
 
     assert calls == ["compute", "barrier"]
@@ -172,9 +183,11 @@ def test_load_or_compute_ramen_stats_non_main_rank_waits_for_barrier(monkeypatch
         dataset=[],
         schema=DatasetSchema(),
         norm_mask=torch.ones(1, dtype=torch.bool),
-        cache_path=tmp_path / "ramen_stats.pt",
+        cache_path=tmp_path / "ramen_stats.json",
         device="cuda:1",
         runtime_context=runtime_context,
+        horizon=8,
+        n_obs_steps=2,
     )
 
     assert calls == ["barrier", "compute"]

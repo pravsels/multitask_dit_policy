@@ -39,6 +39,7 @@ policy:
   n_action_steps: 50
   drop_n_last_frames: 0
   do_mask_loss_for_padding: true
+  ramen_clip_value: 1.5  # single source of truth for both Ramen clamp and DDIM clip_sample_range
   optimizer_lr: 2.0e-5
   optimizer_betas: [0.95, 0.999]
   optimizer_eps: 1.0e-8
@@ -51,8 +52,6 @@ policy:
     beta_start: 0.0001
     beta_end: 0.02
     prediction_type: epsilon
-    clip_sample: true
-    clip_sample_range: 1.0
     num_inference_steps: 100
   observation_encoder:
     text:
