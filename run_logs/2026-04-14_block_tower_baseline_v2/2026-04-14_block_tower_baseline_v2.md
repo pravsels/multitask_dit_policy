@@ -55,14 +55,16 @@
 - config_snapshot: `config/train_block_tower_bs320_lr3e4.yaml`
 
 ## W&B
-- local: `outputs/block_tower_baseline_v2_bs320_lr3e4/wandb/offline-run-20260415_113202-c00fb0ai`
-- synced: https://wandb.ai/pravsels/dit_block_tower_config_fix/runs/c00fb0ai
+- local (run 1): `outputs/block_tower_baseline_v2_bs320_lr3e4/wandb/offline-run-20260415_113202-c00fb0ai`
+- synced (run 1): https://wandb.ai/pravsels/dit_block_tower_config_fix/runs/c00fb0ai
+- local (run 2 — resume): `outputs/block_tower_baseline_v2_bs320_lr3e4/wandb/offline-run-20260416_121837-a8ql2mse`
+- synced (run 2): https://wandb.ai/pravsels/dit_block_tower_config_fix/runs/a8ql2mse
 - notes: periodic bursty stalls visible in throughput; loss curve noisy due to rank-0-only logging
 
 ## HuggingFace
-- repo: pending
-- uploaded checkpoints: pending
-- includes: pending
+- repo: https://huggingface.co/pravsels/dit_block_tower_config_fix
+- uploaded checkpoints: checkpoint_40000 (model.safetensors + config.json + ramen_stats.pt)
+- sha256 (model.safetensors, verified twice): `455f0f6fe4032461848de181414dab2315cd2e7433aaa1828ff362d8891f7c29`
 
 ## Next
 - monitor 3856137 for resume from checkpoint_20000 (auto-detect), confirm training continues from step 20000
