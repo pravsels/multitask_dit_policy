@@ -22,13 +22,35 @@
 
 ## Job
 - execution_id: 3880995
-- submitted: 2026-04-17T16:55:00Z
+- submitted/start: 2026-04-17T17:48:05Z
+- start_human: Thursday, Apr 17, 2026 17:48 UTC
+- end: 2026-04-18T17:48:34Z
+- end_human: Friday, Apr 18, 2026 17:48 UTC
+- runtime: 1-00:00:29
+- node: nid010340
 
 ## Status
 - 2026-04-17 16:55 UTC - submitted as Slurm job 3880995, pending (Priority)
+- 2026-04-17 17:48 UTC - running on nid010340
+- 2026-04-18 17:48 UTC - TIMEOUT at step ~29588/50000 (walltime 1 day reached)
 
 ## Results
+- runtime: 1-00:00:29 (walltime limit)
+- final step: ~29588/50000
+- start_train_loss: 1.04
+- end_train_loss: 0.0047
+- start_val_loss: n/a
+- end_val_loss: n/a
+- loss_one_liner: Loss dropped steadily from 1.04 to 0.0047 over ~29.5k steps; healthy progression, no sign of plateau or overfitting.
+- checkpoint: `/scratch/u6cr/pravsels.u6cr/multitask_dit_policy/outputs/block_tower_norm_fix/checkpoint_29000`
+- config_snapshot: pending
+- MaxRSS: ~117GB — no OOM with workers=8
 
 ## W&B
+- local: `outputs/block_tower_norm_fix/wandb/offline-run-20260417_174833-ksuxe451`
+- synced: `https://wandb.ai/pravsels/dit_block_tower_norm_fix/runs/ksuxe451`
+- notes: pending — review dashboard with user
 
 ## Next
+- resume from checkpoint_29000 to complete remaining ~21k steps
+- sync W&B and review loss curves

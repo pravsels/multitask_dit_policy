@@ -21,13 +21,35 @@
 
 ## Job
 - execution_id: 3880994
-- submitted: 2026-04-17T16:55:00Z
+- submitted/start: 2026-04-17T17:47:42Z
+- start_human: Thursday, Apr 17, 2026 17:47 UTC
+- end: 2026-04-18T17:48:04Z
+- end_human: Friday, Apr 18, 2026 17:48 UTC
+- runtime: 1-00:00:22
+- node: nid011038
 
 ## Status
 - 2026-04-17 16:55 UTC - submitted as Slurm job 3880994, pending (Priority)
+- 2026-04-17 17:47 UTC - running on nid011038
+- 2026-04-18 17:48 UTC - TIMEOUT at step ~29062/50000 (walltime 1 day reached)
 
 ## Results
+- runtime: 1-00:00:22 (walltime limit)
+- final step: ~29062/50000
+- start_train_loss: 1.04
+- end_train_loss: 0.0021
+- start_val_loss: n/a
+- end_val_loss: n/a
+- loss_one_liner: Loss dropped steadily from 1.04 to 0.0021 over 29k steps; healthy progression, no sign of plateau or overfitting.
+- checkpoint: `/scratch/u6cr/pravsels.u6cr/multitask_dit_policy/outputs/coffee_capsules_norm_fix/checkpoint_29000`
+- config_snapshot: pending
+- MaxRSS: 100646M (~98GB) — no OOM with workers=8
 
 ## W&B
+- local: `outputs/coffee_capsules_norm_fix/wandb/offline-run-20260417_174808-vxllabop`
+- synced: `https://wandb.ai/pravsels/dit_coffee_norm_fix/runs/vxllabop`
+- notes: pending — review dashboard with user
 
 ## Next
+- resume from checkpoint_29000 to complete remaining ~21k steps
+- sync W&B and review loss curves
