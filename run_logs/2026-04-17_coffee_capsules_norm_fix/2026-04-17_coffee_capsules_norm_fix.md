@@ -50,6 +50,11 @@
 - synced: `https://wandb.ai/pravsels/dit_coffee_norm_fix/runs/vxllabop`
 - notes: pending — review dashboard with user
 
+## HuggingFace
+- repo: https://huggingface.co/pravsels/dit_coffee_norm_fix
+- uploaded checkpoints: step 29000 (params only)
+- includes: model.safetensors, config.json, ramen_stats.json
+
 ## Next
 - resume from checkpoint_29000 to complete remaining ~21k steps
-- sync W&B and review loss curves
+- review W&B dashboard
