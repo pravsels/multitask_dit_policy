@@ -21,7 +21,9 @@ Supports both diffusion and flow matching objectives for action generation.
 """
 
 from collections import deque
+import logging
 from pathlib import Path
+import time
 
 import draccus
 import torch
@@ -38,6 +40,8 @@ from multitask_dit_policy.model.observation_encoder import ObservationEncoder
 from multitask_dit_policy.model.transformer import DiffusionTransformer
 from multitask_dit_policy.utils.configuration import MultiTaskDiTConfig
 from multitask_dit_policy.utils.utils import populate_queues
+
+log = logging.getLogger(__name__)
 
 
 class MultiTaskDiTPolicy(nn.Module):
@@ -99,6 +103,7 @@ class MultiTaskDiTPolicy(nn.Module):
                 action_dim=action_dim,
                 horizon=horizon,
                 do_mask_loss_for_padding=config.do_mask_loss_for_padding,
+                ramen_clip_value=config.ramen_clip_value,
             )
         elif config.is_flow_matching:
             self.objective = FlowMatchingObjective(
@@ -113,26 +118,39 @@ class MultiTaskDiTPolicy(nn.Module):
         self.reset()
 
     def get_optim_params(self) -> list:
-        """Returns parameter groups with different learning rates for vision vs non-vision parameters."""
+        """Return parameter groups with reduced LR for backbone encoders."""
         non_vision_params = []
         vision_encoder_params = []
+        multimodal_backbone_params = []
 
         for name, param in self.named_parameters():
             if not param.requires_grad:
                 continue
 
-            if "observation_encoder.vision_encoder" in name:
+            if "observation_encoder.multimodal_encoder.model" in name:
+                multimodal_backbone_params.append(param)
+            elif "observation_encoder.vision_encoder" in name:
                 vision_encoder_params.append(param)
             else:
                 non_vision_params.append(param)
 
-        return [
-            {"params": non_vision_params},
-            {
-                "params": vision_encoder_params,
-                "lr": self.config.optimizer_lr * self.config.observation_encoder.vision.lr_multiplier,
-            },
-        ]
+        optim_groups = [{"params": non_vision_params}]
+        if vision_encoder_params:
+            optim_groups.append(
+                {
+                    "params": vision_encoder_params,
+                    "lr": self.config.optimizer_lr * self.config.observation_encoder.vision.lr_multiplier,
+                }
+            )
+        if multimodal_backbone_params:
+            optim_groups.append(
+                {
+                    "params": multimodal_backbone_params,
+                    "lr": self.config.optimizer_lr * self.config.observation_encoder.multimodal.lr_multiplier,
+                }
+            )
+
+        return optim_groups
 
     def _generate_actions(self, batch: dict[str, Tensor]) -> Tensor:
         batch_size, n_obs_steps = batch["observation.state"].shape[:2]
@@ -141,9 +159,7 @@ class MultiTaskDiTPolicy(nn.Module):
         conditioning_vec = self.observation_encoder.encode(batch)
         actions = self.objective.conditional_sample(self.noise_predictor, batch_size, conditioning_vec)
 
-        start_idx = n_obs_steps - 1
-        end_idx = start_idx + self.config.n_action_steps
-        return actions[:, start_idx:end_idx]
+        return actions[:, : self.config.n_action_steps]
 
     def reset(self):
         """Clear observation and action queues."""
@@ -228,6 +244,7 @@ class MultiTaskDiTPolicy(nn.Module):
     @staticmethod
     def load(checkpoint_path: str | Path):
         path = Path(checkpoint_path)
+        load_start = time.perf_counter()
 
         # Load config from JSON using draccus
         config_file = path / "config.json"
@@ -240,12 +257,17 @@ class MultiTaskDiTPolicy(nn.Module):
 
         # Checkpoint loading should restore encoder weights from safetensors
         # rather than pulling the upstream pretrained backbones first.
+        construct_start = time.perf_counter()
         model = MultiTaskDiTPolicy(config, load_pretrained_backbones=False)
+        log.info("Constructed policy modules in %.2fs", time.perf_counter() - construct_start)
 
         # Load model weights from safetensors (matching lerobot convention)
         model_file = path / "model.safetensors"
         if not model_file.exists():
             raise FileNotFoundError(f"model.safetensors not found in {path}")
 
+        safetensors_start = time.perf_counter()
         load_model_as_safetensor(model, str(model_file))
+        log.info("Loaded safetensors weights in %.2fs", time.perf_counter() - safetensors_start)
+        log.info("Finished MultiTaskDiTPolicy.load in %.2fs", time.perf_counter() - load_start)
         return model

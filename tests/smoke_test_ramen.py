@@ -54,18 +54,17 @@ def test_eef_pose_roundtrip():
 
 
 def test_full_pipeline():
-    from lerobot.datasets.lerobot_dataset import LeRobotDatasetMetadata
     from robocandywrapper import make_dataset_without_config
 
     from multitask_dit_policy.model.model import MultiTaskDiTPolicy
-    from multitask_dit_policy.utils.configuration import MultiTaskDiTConfig
+    from multitask_dit_policy.utils.configuration import (
+        DatasetSchema,
+        MultiTaskDiTConfig,
+        SchemaEntry,
+    )
     from multitask_dit_policy.utils.dataset_adapter import (
-        ROT6D_END,
-        ROT6D_START,
         adapt_batch,
         compute_adapted_features,
-        detect_sub_features,
-        select_default_keys,
     )
     from multitask_dit_policy.utils.ramen_normalization import (
         build_norm_mask,
@@ -77,26 +76,31 @@ def test_full_pipeline():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     repo = "villekuosmanen/bin_pick_pack_coffee_capsules"
 
-    # Feature detection
-    meta = LeRobotDatasetMetadata(repo_id=repo)
-    detected_s, detected_a = detect_sub_features(meta.features)
-    state_keys, action_keys = select_default_keys(detected_s, detected_a)
-    print(f"state_keys: {state_keys}")
-    print(f"action_keys: {action_keys}")
+    schema = DatasetSchema(
+        state=[
+            SchemaEntry(key="observation.state.pos", dim=7),
+            SchemaEntry(key="observation.state.eef_pose", dim=7, convert_rotation=True),
+        ],
+        action=[
+            SchemaEntry(key="action.pos", dim=7),
+            SchemaEntry(key="action.eef_pose", dim=7, convert_rotation=True),
+        ],
+        rot6d_slice=(10, 16),
+    )
+    print(f"state_keys: {schema.state_keys}")
+    print(f"action_keys: {schema.action_keys}")
+    print(f"State dim: {schema.state_dim}, Action dim: {schema.action_dim}")
+    assert schema.state_dim == 17
+    assert schema.action_dim == 17
 
-    inp, out = compute_adapted_features(meta.features, state_keys, action_keys)
-    state_dim = inp["observation.state"].shape[0]
-    print(f"State dim: {state_dim}")
-    assert state_dim == 17, f"Expected 17, got {state_dim}"
-    assert out["action"].shape[0] == 17
-
-    norm_mask = build_norm_mask(state_dim, ROT6D_START, ROT6D_END)
+    rot6d_start, rot6d_end = schema.rot6d_slice
+    norm_mask = build_norm_mask(
+        max(schema.state_dim, schema.action_dim), rot6d_start, rot6d_end,
+    )
     print(f"norm_mask: {norm_mask}")
 
     # Load 1 episode
     cfg = MultiTaskDiTConfig()
-    cfg.input_features = inp
-    cfg.output_features = out
 
     ds = make_dataset_without_config(
         repo_id=repo,
@@ -108,8 +112,12 @@ def test_full_pipeline():
     )
     print(f"Dataset length: {len(ds)}")
 
+    inp, out = compute_adapted_features(ds.meta.features, schema)
+    cfg.input_features = inp
+    cfg.output_features = out
+
     # Ramen stats
-    ramen_stats = compute_ramen_stats(ds, state_keys, action_keys, norm_mask, device=device)
+    ramen_stats = compute_ramen_stats(ds, schema, norm_mask, device=device)
     print(f"obs_q02 shape: {ramen_stats['obs_q02'].shape}")
     print(f"action_q02 shape: {ramen_stats['action_q02'].shape}")
 
@@ -119,24 +127,24 @@ def test_full_pipeline():
         k: v.unsqueeze(0).to(device) if isinstance(v, torch.Tensor) else v
         for k, v in sample.items()
     }
-    batch = adapt_batch(batch, state_keys, action_keys, norm_mask.to(device))
+    batch = adapt_batch(batch, schema, norm_mask.to(device))
 
     print(f"obs shape: {batch['observation.state'].shape}")
     print(f"action shape: {batch['action'].shape}")
-    assert batch["observation.state"].shape[-1] == 17
-    assert batch["action"].shape[-1] == 17
+    assert batch["observation.state"].shape[-1] == schema.state_dim
+    assert batch["action"].shape[-1] == schema.action_dim
 
-    rot_vals = batch["action"][..., ROT6D_START:ROT6D_END]
+    rot_vals = batch["action"][..., rot6d_start:rot6d_end]
     print(f"action rot6d range: [{rot_vals.min():.4f}, {rot_vals.max():.4f}]")
 
     # Normalize
     norm_batch = ramen_normalize_batch(batch, ramen_stats, norm_mask.to(device))
-    m = norm_mask.to(device)
+    m = norm_mask[:schema.state_dim].to(device)
     ns = norm_batch["observation.state"]
     print(f"Norm state range (non-rot): [{ns[..., m].min():.3f}, {ns[..., m].max():.3f}]")
     print(
         f"Rot6d unchanged: "
-        f"{torch.allclose(ns[..., ROT6D_START:ROT6D_END], batch['observation.state'][..., ROT6D_START:ROT6D_END])}"
+        f"{torch.allclose(ns[..., rot6d_start:rot6d_end], batch['observation.state'][..., rot6d_start:rot6d_end])}"
     )
 
     # Image normalization

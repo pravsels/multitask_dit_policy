@@ -23,6 +23,55 @@ from lerobot.utils.constants import ACTION, OBS_STATE
 
 from .utils import NormalizationMode
 
+
+@dataclass
+class SchemaEntry:
+    """A single dataset key and how to process it."""
+
+    key: str
+    dim: int
+    convert_rotation: bool = False
+
+    @property
+    def output_dim(self) -> int:
+        """Dimension after optional RPY-to-rot6d conversion.
+
+        convert_eef_pose splits [xyz(3), rpy(3), ...rest] and expands
+        rpy(3) to rot6d(6), adding 3 dims to the raw size.
+        """
+        if self.convert_rotation:
+            return self.dim + 3
+        return self.dim
+
+
+@dataclass
+class DatasetSchema:
+    """Per-task declaration of dataset key layout.
+
+    Replaces hardcoded DEFAULT_STATE_KEYS / DEFAULT_ACTION_KEYS.
+    State and action dims are computed from entries and may differ.
+    """
+
+    state: list[SchemaEntry] = field(default_factory=list)
+    action: list[SchemaEntry] = field(default_factory=list)
+    rot6d_slice: tuple[int, int] = (10, 16)
+
+    @property
+    def state_keys(self) -> list[str]:
+        return [e.key for e in self.state]
+
+    @property
+    def action_keys(self) -> list[str]:
+        return [e.key for e in self.action]
+
+    @property
+    def state_dim(self) -> int:
+        return sum(e.output_dim for e in self.state)
+
+    @property
+    def action_dim(self) -> int:
+        return sum(e.output_dim for e in self.action)
+
 # Suppress Pydantic warnings from draccus ChoiceRegistry union types
 # This is an interaction with draccus that we can't control
 warnings.filterwarnings("ignore", message=".*Field.*attribute.*repr.*")
@@ -65,8 +114,15 @@ class DiffusionConfig(ObjectiveConfig):
     beta_start: float = 0.0001  # Small initial noise level
     beta_end: float = 0.02  # Moderate final noise level
     prediction_type: str = "epsilon"  # Predict noise (works better than direct prediction)
-    clip_sample: bool = True  # Prevent extreme action values
-    clip_sample_range: float = 1.0  # Clip to [-1, 1] range
+    # DEPRECATED: clip_sample / clip_sample_range have moved to the parent
+    # `MultiTaskDiTConfig.ramen_clip_value`, which is the single source of
+    # truth for both the Ramen training-time clamp and this scheduler's
+    # inference-time `clip_sample_range`. These fields are kept here only
+    # so existing checkpoint config.json files still load; their values
+    # are ignored at runtime (a DeprecationWarning is emitted by
+    # `DiffusionObjective.__init__` if they are set).
+    clip_sample: bool = True
+    clip_sample_range: float = 1.0
 
     # Inference configuration
     num_inference_steps: int | None = None  # Default to num_train_timesteps
@@ -336,6 +392,33 @@ class CLIPTextEncoderConfig(TextEncoderConfig):
 
 
 @dataclass
+class MultimodalEncoderConfig(draccus.ChoiceRegistry):
+    """Base configuration for unified multimodal encoders."""
+
+    freeze_backbone: bool = True
+    lr_multiplier: float = 0.1
+    gradient_checkpointing: bool = False
+
+
+@MultimodalEncoderConfig.register_subclass("pooled")
+@dataclass
+class PooledMultimodalEncoderConfig(MultimodalEncoderConfig):
+    """Pooled Hugging Face multimodal encoder configuration."""
+
+    model: str = "Qwen/Qwen3.5-4B"
+    output_dim: int = 512
+    max_text_length: int = 128
+
+    def __post_init__(self):
+        if self.output_dim <= 0:
+            raise ValueError(f"output_dim must be positive, got {self.output_dim}")
+        if self.max_text_length <= 0:
+            raise ValueError(f"max_text_length must be positive, got {self.max_text_length}")
+        if self.lr_multiplier <= 0:
+            raise ValueError(f"lr_multiplier must be positive, got {self.lr_multiplier}")
+
+
+@dataclass
 class ObservationEncoderConfig:
     """Top-level configuration for observation encoding.
 
@@ -345,6 +428,21 @@ class ObservationEncoderConfig:
 
     vision: VisionEncoderConfig = field(default_factory=CLIPVisionEncoderConfig)
     text: TextEncoderConfig = field(default_factory=CLIPTextEncoderConfig)
+    multimodal: MultimodalEncoderConfig | None = None
+
+    @property
+    def uses_multimodal_encoder(self) -> bool:
+        return self.multimodal is not None
+
+    @property
+    def use_imagenet_stats(self) -> bool:
+        """Whether dataset images should be normalized with ImageNet mean/std.
+
+        True for standalone vision encoders (CLIP, DINOv3) which expect
+        ImageNet-normalized inputs.  False when using a multimodal encoder
+        (e.g. Qwen) whose processor handles its own normalization.
+        """
+        return not self.uses_multimodal_encoder
 
 
 @dataclass
@@ -368,17 +466,28 @@ class MultiTaskDiTConfig:
     )
 
     # Default trim keeps only windows with a full, unpadded action horizon.
-    drop_n_last_frames: int | None = None  # Auto-calculated: horizon - n_action_steps - n_obs_steps + 1
+    drop_n_last_frames: int | None = None  # Auto-calculated: max(0, horizon - n_action_steps)
     observation_encoder: ObservationEncoderConfig = field(default_factory=ObservationEncoderConfig)
     transformer: TransformerConfig = field(default_factory=TransformerConfig)
     objective: ObjectiveConfig = field(default_factory=DiffusionConfig)
     do_mask_loss_for_padding: bool = False  #  same logic as is implemented in LeRobot DP implementation
+
+    # Single source of truth for the Ramen normalization clamp. Used by
+    # `ramen_normalize` at training time and by the diffusion scheduler's
+    # `clip_sample_range` at inference time, so the two stay in lockstep.
+    # Default 1.5 matches the historical Ramen clamp.
+    ramen_clip_value: float = 1.5
 
     # training optimizer hyperparameters
     optimizer_lr: float = 2e-5
     optimizer_betas: tuple = (0.95, 0.999)
     optimizer_eps: float = 1e-8
     optimizer_weight_decay: float = 0.0  # No weight decay is suggested to be optimal
+
+    # Dataset schema — records which dataset keys compose state/action vectors
+    # and which dims undergo rotation conversion.  Saved into checkpoints so
+    # deploy scripts can reconstruct the observation/action layout.
+    dataset_schema: DatasetSchema | None = None
 
     # Input/Output features
     input_features: dict[str, Any] = field(default_factory=dict)
@@ -387,9 +496,14 @@ class MultiTaskDiTConfig:
 
     def __post_init__(self):
         if self.drop_n_last_frames is None:
-            self.drop_n_last_frames = self.horizon - self.n_action_steps - self.n_obs_steps + 1
+            self.drop_n_last_frames = max(0, self.horizon - self.n_action_steps)
         elif self.drop_n_last_frames < 0:
             raise ValueError(f"drop_n_last_frames must be non-negative, got {self.drop_n_last_frames}")
+
+        if self.ramen_clip_value <= 0:
+            raise ValueError(
+                f"ramen_clip_value must be positive, got {self.ramen_clip_value}"
+            )
 
         # Convert feature dictionaries to PolicyFeature objects if they were loaded from JSON
         # (when loading from JSON, draccus parses them as plain dicts)
@@ -416,6 +530,20 @@ class MultiTaskDiTConfig:
                 else:
                     converted_output_features[key] = value
             self.output_features = converted_output_features
+
+        if isinstance(self.dataset_schema, dict):
+            raw = self.dataset_schema
+            self.dataset_schema = DatasetSchema(
+                state=[
+                    SchemaEntry(**e) if isinstance(e, dict) else e
+                    for e in raw.get("state", [])
+                ],
+                action=[
+                    SchemaEntry(**e) if isinstance(e, dict) else e
+                    for e in raw.get("action", [])
+                ],
+                rot6d_slice=tuple(raw.get("rot6d_slice", (10, 16))),
+            )
 
     def get_optimizer_preset(self) -> AdamConfig:
         """Return Adam optimizer configuration
@@ -476,4 +604,4 @@ class MultiTaskDiTConfig:
     @property
     def action_delta_indices(self) -> list:
         """Delta indices for action horizon prediction."""
-        return list(range(1 - self.n_obs_steps, 1 - self.n_obs_steps + self.horizon))
+        return list(range(0, self.horizon))

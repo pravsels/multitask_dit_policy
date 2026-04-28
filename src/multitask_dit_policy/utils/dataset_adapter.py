@@ -1,11 +1,11 @@
-"""Adapter for LeRobot datasets with sub-features and Ramen-style transforms.
+"""Adapter for LeRobot datasets with configurable sub-features.
 
 Handles datasets where state and action are split into sub-features
-(e.g., observation.state.pos, observation.state.eef_pose) by selecting,
-converting RPY -> 6D rotation, computing delta actions, and concatenating
-into the flat 17D vectors the model expects.
+by selecting, optionally converting RPY -> 6D rotation, computing
+delta actions, and concatenating into flat vectors the model expects.
 
-17D layout: [joint_pos(7), eef_xyz(3), rot6d(6), gripper(1)]
+The key layout is declared per-task via DatasetSchema (YAML config),
+so different datasets can have different key names and dimensions.
 """
 
 import torch
@@ -13,63 +13,50 @@ from torch import Tensor
 from lerobot.configs.types import FeatureType, PolicyFeature
 from lerobot.utils.constants import ACTION, OBS_IMAGE, OBS_STATE
 
+from multitask_dit_policy.utils.configuration import DatasetSchema, SchemaEntry
 from multitask_dit_policy.utils.rotation import convert_eef_pose
 
-# Default sub-feature keys for pos + eef_pose datasets
-DEFAULT_STATE_KEYS = ["observation.state.pos", "observation.state.eef_pose"]
-DEFAULT_ACTION_KEYS = ["action.pos", "action.eef_pose"]
 
-# After RPY->6D conversion: joint_pos(7) + eef_xyz(3) + rot6d(6) + gripper(1) = 17
-EEF_CONVERTED_DIM = 10  # eef_pose 7D -> 10D after RPY->6D
-ROT6D_START = 10  # index in the 17D vector where 6D rotation starts
-ROT6D_END = 16    # index where 6D rotation ends (exclusive)
+def assemble_vector(
+    tensors: dict[str, Tensor],
+    entries: list[SchemaEntry],
+    *,
+    pop: bool = True,
+) -> Tensor | None:
+    """Concatenate sub-feature tensors, applying RPY->rot6d where declared.
 
+    Args:
+        tensors: mapping of key -> tensor.
+        entries: schema entries declaring keys and conversion.
+        pop: if True, remove consumed keys from *tensors* in-place.
 
-def detect_sub_features(features: dict) -> tuple[list[str], list[str]]:
-    """Auto-detect state and action sub-feature keys from dataset metadata.
-
-    Returns (state_keys, action_keys): sorted lists of feature keys to concatenate.
-    Empty lists if the dataset already has flat observation.state / action.
+    Returns:
+        Concatenated tensor, or None if no matching keys found.
     """
-    state_keys = []
-    action_keys = []
-
-    if OBS_STATE not in features:
-        state_keys = sorted(
-            k for k in features
-            if k.startswith(f"{OBS_STATE}.") and features[k].get("dtype") != "video"
-        )
-
-    if ACTION not in features:
-        action_keys = sorted(
-            k for k in features
-            if k.startswith(f"{ACTION}.") and features[k].get("dtype") != "video"
-        )
-
-    return state_keys, action_keys
-
-
-def select_default_keys(
-    state_keys: list[str],
-    action_keys: list[str],
-) -> tuple[list[str], list[str]]:
-    """Narrow detected sub-features to pos + eef_pose only (if available)."""
-    selected_state = [k for k in DEFAULT_STATE_KEYS if k in state_keys] or state_keys
-    selected_action = [k for k in DEFAULT_ACTION_KEYS if k in action_keys] or action_keys
-    return selected_state, selected_action
+    parts: list[Tensor] = []
+    for entry in entries:
+        val = tensors.pop(entry.key, None) if pop else tensors.get(entry.key)
+        if val is None:
+            continue
+        if entry.convert_rotation:
+            val = convert_eef_pose(val)
+        parts.append(val)
+    if not parts:
+        return None
+    return torch.cat(parts, dim=-1)
 
 
 def compute_adapted_features(
     features: dict,
-    state_keys: list[str],
-    action_keys: list[str],
+    schema: DatasetSchema,
 ) -> tuple[dict[str, PolicyFeature], dict[str, PolicyFeature]]:
-    """Build input_features and output_features dicts with 17D shapes.
+    """Build input_features and output_features from dataset metadata + schema.
 
-    Accounts for RPY -> 6D expansion: eef_pose contributes 10D (not 7D).
+    Image features are discovered from the *features* dict.
+    State/action dims come from the schema (no sub-feature lookup needed).
     """
-    input_features = {}
-    output_features = {}
+    input_features: dict[str, PolicyFeature] = {}
+    output_features: dict[str, PolicyFeature] = {}
 
     for key, ft in features.items():
         if key == "index":
@@ -79,16 +66,18 @@ def compute_adapted_features(
             h, w, c = shape
             input_features[key] = PolicyFeature(type=FeatureType.VISUAL, shape=(c, h, w))
 
-    if state_keys:
-        total_dim = _compute_total_dim(features, state_keys)
-        input_features[OBS_STATE] = PolicyFeature(type=FeatureType.STATE, shape=(total_dim,))
+    if schema.state:
+        input_features[OBS_STATE] = PolicyFeature(
+            type=FeatureType.STATE, shape=(schema.state_dim,),
+        )
     elif OBS_STATE in features:
         shape = tuple(features[OBS_STATE]["shape"])
         input_features[OBS_STATE] = PolicyFeature(type=FeatureType.STATE, shape=shape)
 
-    if action_keys:
-        total_dim = _compute_total_dim(features, action_keys)
-        output_features[ACTION] = PolicyFeature(type=FeatureType.ACTION, shape=(total_dim,))
+    if schema.action:
+        output_features[ACTION] = PolicyFeature(
+            type=FeatureType.ACTION, shape=(schema.action_dim,),
+        )
     elif ACTION in features:
         shape = tuple(features[ACTION]["shape"])
         output_features[ACTION] = PolicyFeature(type=FeatureType.ACTION, shape=shape)
@@ -96,73 +85,47 @@ def compute_adapted_features(
     return input_features, output_features
 
 
-def _compute_total_dim(features: dict, keys: list[str]) -> int:
-    """Sum dimensions, accounting for RPY->6D expansion on eef_pose keys."""
-    total = 0
-    for k in keys:
-        raw_dim = features[k]["shape"][0]
-        if k.endswith(".eef_pose"):
-            total += EEF_CONVERTED_DIM  # 7 -> 10 after RPY->6D
-        else:
-            total += raw_dim
-    return total
-
-
 def adapt_batch(
     batch: dict[str, Tensor],
-    state_keys: list[str],
-    action_keys: list[str],
+    schema: DatasetSchema,
     norm_mask: Tensor,
 ) -> dict[str, Tensor]:
-    """Transform a batch: select sub-features, RPY->6D, delta actions, concatenate.
+    """Transform a batch: assemble sub-features, RPY->6D, delta actions.
 
     Args:
         batch: raw batch from DataLoader with sub-feature keys.
-        state_keys: e.g. ["observation.state.pos", "observation.state.eef_pose"]
-        action_keys: e.g. ["action.pos", "action.eef_pose"]
-        norm_mask: (17,) bool tensor — True for dims that get delta'd.
+        schema: dataset schema declaring keys and conversions.
+        norm_mask: bool tensor — True for dims that get delta'd.
+            Length must be >= min(state_dim, action_dim).
 
     Returns:
-        Batch with observation.state (B, n_obs, 17) and action (B, horizon, 17).
+        Batch with flat observation.state and action tensors.
     """
     adapted = dict(batch)
 
-    # --- Build observation.state (17D) ---
-    obs_parts = []
-    for k in state_keys:
-        val = adapted.pop(k, None)
-        if val is None:
-            continue
-        if k.endswith(".eef_pose"):
-            val = convert_eef_pose(val)
-        obs_parts.append(val)
-    if obs_parts:
-        adapted[OBS_STATE] = torch.cat(obs_parts, dim=-1)
+    obs = assemble_vector(adapted, schema.state, pop=True)
+    if obs is not None:
+        adapted[OBS_STATE] = obs
 
-    # --- Build action (17D) ---
-    act_parts = []
-    for k in action_keys:
-        val = adapted.pop(k, None)
-        if val is None:
-            continue
-        if k.endswith(".eef_pose"):
-            val = convert_eef_pose(val)
-        act_parts.append(val)
-    if act_parts:
-        adapted[ACTION] = torch.cat(act_parts, dim=-1)
+    act = assemble_vector(adapted, schema.action, pop=True)
+    if act is not None:
+        adapted[ACTION] = act
 
-    # --- Delta actions (all dims except 6D rotation) ---
+    # Delta actions: subtract on the shared prefix of state/action dims.
     if OBS_STATE in adapted and ACTION in adapted:
-        current_obs = adapted[OBS_STATE][:, -1:, :]  # (B, 1, 17)
-        m = norm_mask.to(adapted[ACTION].device)
-        adapted[ACTION][..., m] = adapted[ACTION][..., m] - current_obs[..., m]
+        current_obs = adapted[OBS_STATE][:, -1:, :]
+        shared = min(current_obs.shape[-1], adapted[ACTION].shape[-1])
+        m = norm_mask[:shared].to(adapted[ACTION].device)
+        adapted[ACTION][..., :shared][..., m] = (
+            adapted[ACTION][..., :shared][..., m] - current_obs[..., :shared][..., m]
+        )
 
-    # --- Merge _is_pad flags (take the first, identical temporal structure) ---
-    for sub_keys, target in [(state_keys, OBS_STATE), (action_keys, ACTION)]:
+    # Merge _is_pad flags (take the first per category).
+    for entries, target in [(schema.state, OBS_STATE), (schema.action, ACTION)]:
         pad_key = f"{target}_is_pad"
         first_pad = None
-        for k in sub_keys:
-            pk = f"{k}_is_pad"
+        for entry in entries:
+            pk = f"{entry.key}_is_pad"
             if pk in adapted:
                 if first_pad is None:
                     first_pad = adapted.pop(pk)

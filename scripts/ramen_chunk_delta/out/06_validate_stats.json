@@ -1,0 +1,64 @@
+{
+  "stats_path": "scripts/ramen_chunk_delta/out/ramen_stats_coffee_capsules_H32_obs2.json",
+  "results": [
+    {
+      "name": "shapes",
+      "ok": true,
+      "detail": "action_q02=(32, 17), action_q98=(32, 17), obs_q02=(1, 17), obs_q98=(1, 17)"
+    },
+    {
+      "name": "single-frame-span-match",
+      "ok": true,
+      "detail": "masked max relative error at position 0 vs old (1,D) span = 0.2136, masked mean = 0.0712"
+    },
+    {
+      "name": "late-vs-early-span-growth",
+      "ok": true,
+      "detail": "arm dims expect >=5x, grip dims expect >=1.5x; d0=6.53x, d1=8.48x, d2=7.67x, d3=6.96x, d4=5.18x, d5=6.61x, d6=1.95x, d16=1.95x"
+    },
+    {
+      "name": "grip-range-physical-scale",
+      "ok": true,
+      "detail": "position-31 grip span=0.1251, Phase-1 physical range~=0.0780"
+    },
+    {
+      "name": "finite-values",
+      "ok": true,
+      "detail": "all four stats tensors finite"
+    },
+    {
+      "name": "rot6d-stats-finite",
+      "ok": true,
+      "detail": "rot6d q02 range=(-0.9914, +0.0344), q98 range=(-0.0224, +0.9984)"
+    },
+    {
+      "name": "dataset-round-trip",
+      "ok": true,
+      "detail": "idx 0 max_err=1.19e-07, idx 100 max_err=1.19e-07, idx 1000 max_err=5.96e-08"
+    }
+  ],
+  "late_vs_early_ratios": {
+    "0": 6.526597938662897,
+    "1": 8.481000826011316,
+    "2": 7.665018868982801,
+    "3": 6.964355037174399,
+    "4": 5.176475596352998,
+    "5": 6.612680247010029,
+    "6": 1.9529031398449344,
+    "16": 1.9529031398449344
+  },
+  "round_trip_details": [
+    {
+      "dataset_index": 0,
+      "max_abs_err": 1.1920928955078125e-07
+    },
+    {
+      "dataset_index": 100,
+      "max_abs_err": 1.1920928955078125e-07
+    },
+    {
+      "dataset_index": 1000,
+      "max_abs_err": 5.960464477539063e-08
+    }
+  ]
+}
